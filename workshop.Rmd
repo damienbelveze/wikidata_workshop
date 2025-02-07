@@ -1,7 +1,22 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output: 
+  html_document: 
+    toc: true
 ---
+
+# introduction
+
+Les données sur les espèces biologiques, à l'instar de toutes les autres données de recherche doivent être FAIR (Findable, Accessible, Interoperable, Reusable). 
+Depuis 2008, la fondation à but non lucratif Plazi Verein qui réunit des chercheurs et chercheuses dans le domaine de la biodiversité et des professionnels de l'information maintiennent une banque de données sur les espèces, la *Treatment Bank"
+Cette base de données librement accessible sur le web contient des informations sur un nombre croissant d'espèces et accorde à chacune un identifiant unique et pérenne qui permet de les identifier sans ambiguité et sur le temps long. 
+
+Depuis quelques temps, Plazi tient un compte sur le Fédivers (Mastodon) et y publie des informations sur les dernières espèces. Ces informations comprennent entre autres informations le nom de l'espèce, le lieu de découverte, l'identifiant de l'espèce dans la base de données Plazi et la publication dans laquelle cette découverte est mentionnée. 
+
+![](images/harlequin_frog.png)
+
+
+
 
 ```{r}
 library(WikidataR)
@@ -11,7 +26,7 @@ library(rtoot)
 
 # Récupération des toots de Plazi 
 
-```{r authentication on Mastodon and identification of Plazi Mastodon account}
+```{r authentication on Mastodon and identification of Plazi Mastodon account, eval=FALSE}
 library(rtoot)
 auth_setup() # authentification de l'utilisateur
 # documentation on Rtoot is available here https://www.rdocumentation.org/packages/rtoot/versions/0.3.4
@@ -70,11 +85,15 @@ df$content <- map_chr(df$content, function(x) {
 })
 head(df$content, 10)
 ```
-```{r récupération DOIs}
+```{r récupération DOIs et Plazi IDs}
 library(stringr)
-pattern <- "(?<=doi.org/)(.*?)(?=#)"
+pattern_doi <- "(?<=doi.org/)(.*?)(?=#)" #regex to extract doi
+pattern_plazi <- "[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}" # regex to extract plazi identifiants
 df <- df %>%
-  mutate(doi = str_extract(content, pattern))  
+  mutate(
+    doi = str_extract(content, pattern_doi),
+  plazi = str_extract(content, pattern_plazi)
+    )  
 #str_to_sentence(country_discovery$country_of_discovery)
 head(df, 10)
 ```
@@ -92,7 +111,7 @@ head(df, 10)
 ```
 
 ```{r sélectionner les colonnes importantes pour nous }
-df <- select(df, species_name, country_of_discovery, doi)
+df <- select(df, species_name, country_of_discovery, doi, plazi)
 head(df,10)
 ```
 
@@ -130,10 +149,10 @@ countries_qid <- countries_qid %>%
 head(countries_qid, 10)
 ```
 
-```{r jonction des deux tableau }
+```{r jonction des deux tableaux }
 
 df1 <- merge(df, countries_qid, by = "country_of_discovery")
-df1 <- select(df1, species_name, qid, country_of_discovery, doi)
+df1 <- select(df1, species_name, qid, country_of_discovery, doi, plazi)
 head(df1, 10)
 
 ```
@@ -162,17 +181,12 @@ head(df2, 10)
 
 ```
 
-```{r récupération des items qui ne sont déjà présents dans Wikidata}
-#df3 : items déjà créésdans Wikdata
-df3  <- df1[!is.na(df1$QID_items),] # filter(df1 =="NA") won't do it (see here https://stackoverflow.com/questions/7980622/subset-of-rows-containing-na-missing-values-in-a-chosen-column-of-a-data-frame#7980765)
-head(df3, 10)
 
-```
 
 
 # création d'un tableau à partir des données relatives aux éléments à créer
 
-```{r selection des trois items de tête de la liste df2)}
+```{r selection des trois items de tête de la liste df2}
 
 df2_sub <- slice_head(df2, n = 3, by = NULL)
 df2_sub <- df2_sub %>% 
@@ -182,8 +196,9 @@ df2_sub <- df2_sub %>%
     Len = paste0(df2_sub$species_name),
     P189 = paste0(df2_sub$qid),
     P356 = paste0(df2_sub$doi),
+    P1992 = paste0(df2_sub$plazi)
   )
-df2_sub <- select(df2_sub, item, species_name, Len, P189, P356)
+df2_sub <- select(df2_sub, item, species_name, Len, P189, P356, P1992)
 print(df2_sub)
 
 ```
@@ -191,6 +206,8 @@ print(df2_sub)
 ```{r code de Katharina Brunner}
 library(tidyr)
 library(stringr)
+
+# voir méthode présentée par Katharina Brunner : https://katharinabrunner.de/2022/06/wikibase-wikidata-etl-data-import-with-r/ 
 
 import <- df2_sub %>% 
   select(item, 
@@ -217,14 +234,71 @@ write_wikidata(
   values       = import$value,
   format       = "api",
   api.username = "Udo_Bolano", 
-  api.token    = "$2y$10$qy3Omn7Dn4DaXAD1QBWcs.dNjrKwlrc.cFX2rVZMyQ7oYt2xYSmJS", #REDACTED#
+  api.token    = "$2y$10$qy3Omn7Dn4DaXAD1QBWcs.dNjrKwlrc.cFX2rVZMyQ7oYt2xYSmJS", #api.token    = mettre ici le token récupéré sur https://quickstatements.toolforge.org/#/user
   )
+
+#results ici : https://quickstatements.toolforge.org/#/batch/243495
 
 ```
 
 
 
+```{r récupération des items qui sont déjà présents dans Wikidata}
+#df3 : items déjà créésdans Wikdata
+df3  <- df1[!is.na(df1$QID_items),] # filter(df1 =="NA") won't do it (see here https://stackoverflow.com/questions/7980622/subset-of-rows-containing-na-missing-values-in-a-chosen-column-of-a-data-frame#7980765)
+head(df3, 10)
 
-api.token    = mettre ici le token récupéré sur https://quickstatements.toolforge.org/#/user
+```
 
-voir mode d'emploi ici : https://katharinabrunner.de/2022/06/wikibase-wikidata-etl-data-import-with-r/ 
+```{r selection des trois items de tête de la liste df3}
+
+df3_sub <- slice_head(df3, n = 3, by = NULL)
+df3_sub <- df3_sub %>% 
+  mutate(
+    row_num = row_number(),
+    Len = paste0(df3_sub$species_name),
+    P189 = paste0(df3_sub$qid),
+    P356 = paste0(df3_sub$doi),
+    P1992 = paste0(df3_sub$plazi)
+  )
+df3_sub <- select(df3_sub, QID_items, species_name, Len, P189, P356, P1992)
+print(df3_sub)
+
+```
+
+
+
+```{r enrichissement}
+
+import2 <- df3_sub %>% 
+  select(QID_items, 
+         matches("^L", ignore.case = FALSE), 
+         matches("^D", ignore.case = FALSE), 
+         # if there are some links to other Wiki pages
+         #matches("^S", ignore.case = FALSE), 
+         matches("^P", ignore.case = FALSE)) %>% 
+  pivot_longer(cols = 2:last_col(), names_to = "property", values_to = "value") %>% 
+  # fix helper with two columns referring to the same property
+  mutate(property = str_remove(property, "_.*")) %>% 
+  filter(!is.na(value)) %>% 
+  distinct()
+
+print(import2)
+
+```
+
+
+
+```{r envoyer les enrichissements vers wikidata }
+library(WikidataR)
+write_wikidata(
+  items        = import2$QID_items,
+  properties   = import2$property,
+  values       = import2$value,
+  format       = "api",
+  api.username = "Udo_Bolano", 
+  api.token    = "$2y$10$qy3Omn7Dn4DaXAD1QBWcs.dNjrKwlrc.cFX2rVZMyQ7oYt2xYSmJS", #api.token    = mettre ici le token récupéré sur https://quickstatements.toolforge.org/#/user
+  )
+
+```
+
