@@ -1,8 +1,15 @@
 ---
-title: "R Notebook"
+title: "Enrichir les données de Wikidata avec des informations provenant de Mastodon"
+author: "Damien Belvèze"
+date: 20250208
 output: 
-  html_document: 
+  html_document:
     toc: true
+    toc-depth: 2
+    theme: cerulean
+css: style.css
+bibliography: biblio.bib
+csl: nature.csl
 ---
 
 # introduction
@@ -14,9 +21,40 @@ Cette base de données librement accessible sur le web contient des informations
 Depuis quelques temps, Plazi tient un compte sur le Fédivers (Mastodon) et y publie des informations sur les dernières espèces. Ces informations comprennent entre autres informations le nom de l'espèce, le lieu de découverte, l'identifiant de l'espèce dans la base de données Plazi et la publication dans laquelle cette découverte est mentionnée. 
 
 ![](images/harlequin_frog.png)
+Le Fédivers est un réseau structuré par un protocole de communication (ActivityPub) qui permet de faire communiquer plusieurs serveurs entre eux ; il s'agit d'une architecture décentralisée à laquelle les utilisateurs peuvent avoir accès au moyen de logiciels orientés vers le partage de vidéos (PeerTube), de photos (Pixelfeld) ou de messages (Diaspora et Mastodon). Ces logiciels se présentent comme des alternatives transparentes, libres, éthiques et décentralisées aux plateformes qui, selon Cédric Durand, constituent le fer de lance du techno-féodalisme (à savoir réspectivement Youtube qui appartient à Google, Instagram qui appartient à Meta, et Facebook, Twitter ou LinkdedIn respectivement les propriétés de Mark Zuckerberg, d'Elon Musk et de )
+Contrairement  à Bluesky qui utilise un autre protocole (AT) pouvant potentiellement fonctionner de manière décentralisée, la décentralisation de Mastodon est achevée et les instances qui hébergent les comptes sont diverses, communiquent entre elles et appartiennent tantôt à des particuliers, tantôt à des instiutions. 
+Pour héberger son compte sur Mastodon, Plazi Verein a choisi l'instance mastodon.green. Cette instance est administrée par Johan Empa, un consultant qui travaille à réduire les émissions de gaz à effets de serre du numérique dans les organisations et les entreprises européennes. 
+Il y a une certaine cohérence dans le choix de cette association en faveur de la biodiversité à investir un réseau qui promeut et encourage la diversité des contenus par la décentralisation. Cette cohérence se retrouve dans le choix d'un outil pleinement transparent (si on compare par exemple le fonctionnement de Mastodon à l'algorithme de X) pour contribuer à la FAIRisation des données relatives à la bibliodiversité. 
 
+# 1. De Mastodon à Wikidata
 
+Wikidata est souvent présentée comme la base de données qui soutend son projet frêre, l'encyclopédie Wikipédia. Wikidata est une ontologie universelle qui a au fil des ans pris une importance croissante dans le monde universitaire. A titre d'exemple, la base bibliométrique *open source* OpenAlex intègre depuis deux ans 66 000 concepts provenant de Wikidata. 
+Les identifiants uniques de Wikidata permettent d'identifier de manière sûre et durables les objets de recherche et peuvent être alignés avec un grand nombre d'autres identifiants issus d'ontologies spécifiques propres à telle ou telle science. 
 
+Wikidata est une base en constant développement, et à la différence de Plazi qui est une base gérée par des professionnels de l'information membres d'une association, tout le monde peut y contribuer. 
+Nous avons constaté que les dernières entrées dans la base Plazi n'avaient pas systématiquement fait l'objet de créations d'éléments dans Wikidata, ou bien que certaines des informations qui accompagnaient les messages postés sur Mastodon comportaient des informations standardisées dont on pouvait se servir pour enrichir les éléments qui auraient déjà été créés dans la base Wikidata. 
+Nous avons aussi constaté que les messages envoyés par Plazi sur Mastodon qui annonçaient la découverte de nouvelles espèces répondaient à une structure presque intangible qui facilitaient grandement l'extraction de ces informations standardisées et leur traitement dans un outil comme R. 
+Enfin, nous avons récemment découvert deux outils conçus pour R qui permettent l'un d'extraire de manière automatisée les messages ("toots") postés sur Mastodon par un utilisateur ou bien sur une instance donnée. Il s'agit du [package R Rtoot](https://www.rdocumentation.org/packages/rtoot/versions/0.3.4), l'autre qui permet d'extraire des données de Wikidata et dans l'autre sens d'y réaliser des modifications de masse. Ces modifications peuent être des créations d'éléments ou bien des enrichissements ("statements"). Ce deuxième package conçu pour R est [WikidataR](https://www.rdocumentation.org/packages/WikidataR/versions/2.3.3. 
+
+La méthode que nous allons suivre est par conséquent la suivante : 
+
+1. Utiliser Rtoot pour extraire tous les *toots* de Plazi annonçant l'intégration dans la "treatment bnak" de nouvelles espèces découvertes, et importer ces données dans R. 
+2. Traiter ces messages, en utilisant divers packages de R afin de parser le contenu de ces messages pour en extraire les informations susceptibles de permettre la création ou l'enrichissement des éléments Wikidata relatifs à ces espèces nouvellement apparues. 
+3. Mettre en forme ces informations de sorte à pouvoir au moyen d'une modification de masse ("bulk quick statement") pouvoir les envoyer sur Wikidata. Cela se fera au moyen du package WikidataR et en deux temps : tout d'abord la création d'éléments Wikidata pour les espèces qui n'en disposent pas encore, ensuite, si des éléments Wikidata correspondent déjà à ces espères nouvellement traitées par Plazi, enrichir ces éléments en utilisant pour cela le contenu extrait des messages de l'association. 
+
+# 2. Récupération des toots de Plazi 
+
+Nous pouvons commencer par installer les deux *packages* que nous avons mentionnés dans R. 
+Cela peut se faire à partir de l'[archive CRAN](https://cran.r-project.org/) : 
+
+```shell
+
+install.packages("rtoot")
+install.packages("WikidataR")
+# bien respecter la casse dans WikidatR : la première et dernière lettre sont des majuscules
+```
+
+Puis nous pouvons importer ces packages dans le script : 
 
 ```{r}
 library(WikidataR)
@@ -24,21 +62,36 @@ library(rtoot)
 
 ```
 
-# Récupération des toots de Plazi 
+David Schoch et Chung-Hong Chan sont à l’origine du package Rtoot conçu pour R qu’ils ont présenté dans les colonnes de la revue Mobile Media & Communication (@schochSoftwarePresentationRtoot2023b). Comme une partie des requêtes possibles par API nécessite une authentification, ce package gère cette authentification au moyen d’un token qui peut être obtenu quand on est connecté à son compte. Il faut donc disposer d'un compte Mastodon pour réaliser ce qui suit. Ce compte peut-être créé facilement et immédiatement sur l'une des plus larges instances, [Mastodon.social](https://mastodon.social/explore) ou bien sur mastodon.green, si vous faites le même choix que Plazi. 
 
-```{r authentication on Mastodon and identification of Plazi Mastodon account, eval=FALSE}
+Nous avons divisé le script de notre opération en plusieurs bouts ("chuncks"), de telle sort qu'il soit plus facile aux personnes qui souhaitent le réutiliser de le prendre en main. 
+
+Les commandes qui déclenchent ce processus d’authentification sont indiquées ci-dessous :
+
+```{r authentification à l\'API récupération de l\'identifiant Plazi, eval=FALSE}
 library(rtoot)
-auth_setup() # authentification de l'utilisateur
-# documentation on Rtoot is available here https://www.rdocumentation.org/packages/rtoot/versions/0.3.4
+auth_setup() # authentification de l'utilisateurice
+# la documentation est accesible icihttps://www.rdocumentation.org/packages/rtoot/versions/0.3.4
 id <- search_accounts("plazi_species")
-print(id)
 ```
 
-```{r collection of PLazi\'s toots}
-df <- get_account_statuses("109284766172512524", limit = 400L)
+Ce *chunck* permet de s'authentifier pour accéder à l'API de Mastodon. 
+Il faut donc que le compte Mastodon de l'utilisateurice soit ouvert. Un prompt lui est envoyé pour qu'il.elle insère le nom de l'instance qui héberge ce compte (mettre le nom entre guillements : par exemple "mastodon.social")
+Choisir 2:user
+Cette action ouvre un popup dans R et dans le navigateur une demande d'autorisation à accepter pour relier autoriser l'usage de l'API par le compte. Accepter l'autorisation et copier le jeton obtenu suite à l'acceptation pour le placer dans le popup côté R. 
+La suite du script peut ensuite être exécutée. Elle vise à trouver l'idenfiant du compte de Plazi sur Mastodon à partir de son nom ("plazi_species"). Cet identifiant est nécessaire pour les opérations suivantes, en particulier la récupération de messages provenant de ce compte. 
+
+le *chunk* suivant permet de collecter tous les *toots* envoyé par Plazi sur Mastodon. 
+
+```{r récupération des toots de Plazi, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+df <- get_account_statuses("109284766172512524", limit = 400L) # chnager la limite po
 head(df$content, 1)
 ```
+le pavé ci-dessus correspond au contenu de l'un des messages envoyés par Plazi sur Mastodon. Ce contenu est presque illisible à cause de l'abondance des balises html.
+On discerne quand même le nom de l'espèce séparé du reste du texte par deux balises p en amont et en aval. 
+Utiliser ces balises est nécessaire pour extraire cette information. Les autres informations pourront être extraites une fois que le texte des messages aura été "nettoyé", débarrassé des éléments de la syntaxe html. 
 
+Pour extraire le nom de l'espèce qui se situe entre \<\/\p\>\<\p\> et \<\p\>\<\/\p\>, on va utiliser une première regex ("expression régulière") et l'extraction se fera au moyen du package *stringr*. Les caractères extraits du corps du texte, c'est-à-dire, le nom de l'espèce, vont remplir une nouvelle colonne qui est ajoutée au moyen du package *dplyr*.
 
 ```{r récupération espèce}
 library(stringr)
@@ -47,32 +100,46 @@ pattern <- "(?<=</p><p>)(.*?)(?=</p><p>)"
 df <- df %>%
   mutate(species_name = str_extract(content, pattern))  
 #str_to_sentence(country_discovery$country_of_discovery)
-head(df, 10)
+head(df[30:30], 10) # affichage des 10 premiers résutlats au niveau de la colonne 30 qui comporte le nom des espèces 
 ```
 
+Si l'on observe les 10 premiers résultats de la nouvelle colonne formée (la trentième), on constate que certains items ne sont pas des espèces mais comportent du texte encadrant l'identifant de l'espèce dans le registre de Plazi (Treatment suivi d'un lien html qui comporte cet identifiant).
+Cette particularité concerne les végétaux, comme dans les exemples suivants : 
 
-
-items problématiques : 
 https://mastodon.green/@plazi_species/113917317111853431
 https://mastodon.green/@plazi_species/113916252425285117
 
+D'ordinaire la syntaxe des *toots* de Plazi se présente sous la forme d'un texte qui comporte peu de variations : 
 
-```{r exclusion espèces végétales }
+| 1. hashtag Nouvelle espèce | 2. un nouvel <animal> | 3. découvert en <pays> |  4. vient juste de ramper / bondir / voler, etc. jusqu'ici | 5. <espèce> | 6. traitement :<identifiant plazi> | 7. publication : <doi de la publication |
+|:---|:---|:---|:---|:---|:---|:---|
+| #NewSpecies! | New rock gecko from | #thailand | just rocked in: | Cnemaspis enneaporus | Treatment: https://treatment.plazi.org/id/9A67AE1B-A1A0-55B2-8B6B-EA350C541DA5 | Publication: https://doi.org/10.3897/zookeys.1226.1 |
+
+Mais pour ces messages où l'identifiant de traitement se substitue à l'espèce, la structure est un peu différente :
+
+| 1. hashtag Nouvelle espèce |  2. <espèce> | 3. taxon parent | 4. <pays> d'origine de la découverte | 5. traitement :<identifiant plazi> | 6. publication : <doi de la publication |
+|:---|:---|:---|:---|:---|:---|:---|
+| #NewSpecies! | Clematis pengii| New ranunculaceae | from #taiwan! | Treatment: treatment.plazi.org/id/B4478577-C711-F54E-FF1F-AE04FE9254DF | Publication: doi.org/10.11646/phytotaxa.662.1.2 |
+
+C'est l'identifiant du traitement qui se trouve pris entre les balises déjà évoquées. 
+Cette deuxième disposition concerne des espèces végétales exclusivement. Nous décidons pour le moment de ne pas les intégrer.
+Pour cela nous utilisons la fonction filter du package dplyr et une fonction du package dplyr pour supprimer les résultats qui comportent le terme Treatment dans la colonne "Eespèces" (species_name) nouvellement créée :
+
+
+```{r exclusion espèces végétales, echo=TRUE}
 library(stringr)
 library(dplyr)
 
 df <- df %>%
   filter(!str_detect(species_name, 'Treatment:'))
-head(df, 10)
+head(df[, 30:30], 10)
 
 ```
 
+Le reste du contenu des messages (colonne "content"), du moins les informations qui nous intéressent et dont nous allons nous servir pour enrichir Wikidata, peuvent être isolées et extraites sans l'aide de balises html (les regex pourront intégrer des éléments du texte). 
+On se propose donc à l'étape suivante de *parser* tous ces messages pour en supprimer tous les éléments de formatage en html. Nous suivons en cela la méthode présentée par Stochastics (@stochasticsInteractingMastodonAPIa). Nous aurons besoin pour réaliser cette tâche de deux nouveaux packages : purrr et rvest. 
 
-
-
-
-
-```{r html tags deletion in toot content }
+```{r hsuppression des balises html dans les messages, echo=TRUE}
 library(purrr)
 library(rvest)
 df$content <- map_chr(df$content, function(x) {
@@ -83,35 +150,50 @@ df$content <- map_chr(df$content, function(x) {
     return(x)
   })
 })
-head(df$content, 10)
+head(df$content, 4)
 ```
-```{r récupération DOIs et Plazi IDs}
-library(stringr)
-pattern_doi <- "(?<=doi.org/)(.*?)(?=#)" #regex to extract doi
-pattern_plazi <- "[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}" # regex to extract plazi identifiants
-df <- df %>%
-  mutate(
-    doi = str_extract(content, pattern_doi),
-  plazi = str_extract(content, pattern_plazi)
-    )  
-#str_to_sentence(country_discovery$country_of_discovery)
-head(df, 10)
-```
+Voici les 4 premiers éléments de la liste dans ce nouveau format épuré.
+On y voit désormais quand même plus clair, n'est-ce pas ?
+On va désormais extraire les noms des pays où la découverte a eu lieu. Ces noms sont cités après un hashtag et la préposition *from*. Nous construisons notre regex à partir de ces éléments : 
 
-
-```{r récupération pays de découverte}
+```{r récupération pays de découverte, echo=TRUE}
 library(stringr)
-pattern <- "(?<=from #)(\\w+)"
+pattern <- "(?<=from #)(\\w+)" # capture le mot qui vient après l'expression régulière "from #"
 df <- df %>%
   mutate(
     country_of_discovery = str_extract(content, pattern),
     country_of_discovery = str_to_title(country_of_discovery) 
   )
-head(df, 10)
+head(df[, 30:31], 10)
 ```
 
-```{r sélectionner les colonnes importantes pour nous }
-df <- select(df, species_name, country_of_discovery, doi, plazi)
+On va procéder de manière similaire pour extraire de la colonne "content" les DOI et les identifiants de la base Plazi. 
+pour former l'expression régulière concernant les DOIs, on va s'aider du suffixe doi.org/
+Pour les identifiants Plazi, on observe que leur structure est relativement rigide : même nombre de caractères, même manière de scinder ces caractères en groupes de caractères de 8, 4, 4 et 12 groupes de caractères séparés par des tirets demi-cadratins (-)
+
+```{r récupération DOIs et Plazi IDs, echo=TRUE}
+library(stringr)
+pattern_doi <- "(?<=doi.org/)(.*?)(?=#)" #regex pour extraire les doi
+pattern_plazi <- "[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}" # regex pour extraire les identifiants Plazi
+df <- df %>%
+  mutate(
+    doi = str_extract(content, pattern_doi), #crée une colonne pour les DOI
+  plazi = str_extract(content, pattern_plazi) #crée une colonne pour les identifiants plazi
+    )  
+head(df[,30:33], 10)
+```
+
+la fonction head(df[,30:33], 10) ne représente que les 10 premiers éléments des colonnes 30 à 34 de notre tableau df (pour *dataframe*)
+Mais df comprend encore toutes les autres colonnes dont nous n'aurons plus besoin. Nous pouvons donc nous en débarrasser au moyen d'une sélection de ces seules colonnes qui sont utiles à conserver (fonction *select*)
+Nous ajoutons au passage une colonne *taxon* qui reprend simplement le nom de l'espèce. 
+En effet, un élément Wikidata utilise deux fois le nom de l'espèce : pour le label (= nom de l'élément, par défaut en anglais, même s'il s'agit ici en fait de latin) et pour le taxon.
+
+
+```{r sélectionner les colonnes importantes pour nous, echo=TRUE}
+library(dplyr)
+df <- df %>%
+  mutate(taxon = paste0(species_name))
+df <- select(df, species_name, taxon, country_of_discovery, doi, plazi)
 head(df,10)
 ```
 
@@ -226,7 +308,7 @@ print(import)
 ```
 
 
-```{r envoyer vers wikidata }
+```{r envoyer vers wikidata, eval=FALSE}
 library(WikidataR)
 write_wikidata(
   items        = import$item,
@@ -289,7 +371,7 @@ print(import2)
 
 
 
-```{r envoyer les enrichissements vers wikidata }
+```{r envoyer les enrichissements vers wikidata, eval=FALSE}
 library(WikidataR)
 write_wikidata(
   items        = import2$QID_items,
