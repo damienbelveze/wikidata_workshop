@@ -406,10 +406,14 @@ assigner des éléments pays à la liste de pays obtenus via
 Mastodon</a></li>
 </ul></li>
 <li><a href="#créer-ou-enrichir" id="toc-créer-ou-enrichir">3.3 Créer ou
-enrichir</a></li>
-<li><a href="#création-dun-tableau-à-partir-des-données-relatives-aux-éléments-à-créer" id="toc-création-dun-tableau-à-partir-des-données-relatives-aux-éléments-à-créer">création
-d’un tableau à partir des données relatives aux éléments à
-créer</a></li>
+enrichir</a>
+<ul>
+<li><a href="#constitution-dun-tableau-déléments-à-créer" id="toc-constitution-dun-tableau-déléments-à-créer">3.4 Constitution
+d’un tableau d’éléments à créer</a></li>
+<li><a href="#traitement-des-éléments-qui-sont-déjà-présents-dans-wikidata" id="toc-traitement-des-éléments-qui-sont-déjà-présents-dans-wikidata">traitement
+des éléments qui sont déjà présents dans Wikidata</a></li>
+</ul></li>
+<li><a href="#bibliographie" id="toc-bibliographie">Bibliographie</a></li>
 </ul>
 </div>
 
@@ -980,30 +984,41 @@ au Canada, la valeur Q16 désignant le Canada et provenant du tableau
 issu de Wikidata sera affectée à l’item correspondant (l’espèce
 découverte au Canada).</p>
 <pre class="r"><code>df1 &lt;- merge(df, countries_qid, by = &quot;country_of_discovery&quot;)
-df1 &lt;- select(df1, species_name, qid, country_of_discovery, doi, plazi)
+df1 &lt;- select(df1, species_name, taxon, qid, country_of_discovery, doi, plazi)
 head(df1, 10)</code></pre>
-<pre><code>##                   species_name  qid country_of_discovery
-## 1              Panaspis ericae Q916               Angola
-## 2        Minibiotus dispositus Q414            Argentina
-## 3                 Ctenomys uco Q414            Argentina
-## 4  Xanthomelon amurndamilumila Q408            Australia
-## 5          Diplodactylus fyfei Q408            Australia
-## 6          Liopholis purnululu Q408            Australia
-## 7              Litoria sibilus Q408            Australia
-## 8       Naisdoris labalsaensis Q408            Australia
-## 9          Samadinia jimlowryi Q408            Australia
-## 10     Heteroclinus longicauda Q408            Australia
-##                                 doi                                plazi
-## 1         10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF
-## 2         10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE
-## 3             10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443
-## 4            10.3897/zse.100.113243 37DE5E77-7A67-4069-98C2-9FEA941205C8
-## 5             10.3897/vz.74.e128775 4E3F9A59-B628-507B-AA55-8B74BC462D31
-## 6         10.11646/zootaxa.5551.2.4 EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB
-## 7         10.11646/zootaxa.5406.1.1 03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA
-## 8         10.11646/zootaxa.5443.4.3 03B587E3-FFDF-EE06-00F9-4B27FD01FE9F
-## 9  10.3853/j.2201-4349.75.2023.1876 03B8E56D-1702-7E68-0F60-B4835ED23916
-## 10        10.11646/zootaxa.5432.3.1 933987E1-FFFC-FFFC-80A3-989AFC25A2E4</code></pre>
+<pre><code>##                   species_name                       taxon  qid
+## 1              Panaspis ericae             Panaspis ericae Q916
+## 2        Minibiotus dispositus       Minibiotus dispositus Q414
+## 3                 Ctenomys uco                Ctenomys uco Q414
+## 4  Xanthomelon amurndamilumila Xanthomelon amurndamilumila Q408
+## 5          Diplodactylus fyfei         Diplodactylus fyfei Q408
+## 6          Liopholis purnululu         Liopholis purnululu Q408
+## 7              Litoria sibilus             Litoria sibilus Q408
+## 8       Naisdoris labalsaensis      Naisdoris labalsaensis Q408
+## 9          Samadinia jimlowryi         Samadinia jimlowryi Q408
+## 10     Heteroclinus longicauda     Heteroclinus longicauda Q408
+##    country_of_discovery                              doi
+## 1                Angola        10.3897/evolsyst.8.121103
+## 2             Argentina        10.5852/ejt.2024.958.2663
+## 3             Argentina            10.3897/vz.74.e115242
+## 4             Australia           10.3897/zse.100.113243
+## 5             Australia            10.3897/vz.74.e128775
+## 6             Australia        10.11646/zootaxa.5551.2.4
+## 7             Australia        10.11646/zootaxa.5406.1.1
+## 8             Australia        10.11646/zootaxa.5443.4.3
+## 9             Australia 10.3853/j.2201-4349.75.2023.1876
+## 10            Australia        10.11646/zootaxa.5432.3.1
+##                                   plazi
+## 1  DF1D1955-945C-44BF-B4FB-5E33548C9EEF
+## 2  780E50E1-48E8-474C-8935-070FCD6B09AE
+## 3  797C39B9-EADE-4A18-8BD4-4875AD374443
+## 4  37DE5E77-7A67-4069-98C2-9FEA941205C8
+## 5  4E3F9A59-B628-507B-AA55-8B74BC462D31
+## 6  EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB
+## 7  03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA
+## 8  03B587E3-FFDF-EE06-00F9-4B27FD01FE9F
+## 9  03B8E56D-1702-7E68-0F60-B4835ED23916
+## 10 933987E1-FFFC-FFFC-80A3-989AFC25A2E4</code></pre>
 </div>
 </div>
 <div id="créer-ou-enrichir" class="section level1">
@@ -1017,8 +1032,7 @@ notre tableau principal (df1). Pour cela, pour chaque nom d’espèce que
 contient le tableau, on va interroger Wikidata pour savoir s’il y a un
 élément correspondant avec la fonction <em>find_item</em> du package
 WikidataR, comme indiqué dans le script suivant :</p>
-<pre class="r"><code>options(width = 900)
-get_qid &lt;- function(name) {
+<pre class="r"><code>get_qid &lt;- function(name) {
   results &lt;- find_item(name)  # Search for the name in Wikidata
   if (length(results) &gt; 0) {
     return(results[[1]]$id)  # Extract QID of the first result
@@ -1027,52 +1041,1348 @@ get_qid &lt;- function(name) {
   }
 }
 df1$QID_items &lt;- sapply(df1$species_name, get_qid)
-head(df1, 10)</code></pre>
-<pre><code>##                   species_name  qid country_of_discovery                              doi                                plazi  QID_items
-## 1              Panaspis ericae Q916               Angola        10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF Q127815097
-## 2        Minibiotus dispositus Q414            Argentina        10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE Q132163685
-## 3                 Ctenomys uco Q414            Argentina            10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443 Q124988842
-## 4  Xanthomelon amurndamilumila Q408            Australia           10.3897/zse.100.113243 37DE5E77-7A67-4069-98C2-9FEA941205C8 Q125696676
-## 5          Diplodactylus fyfei Q408            Australia            10.3897/vz.74.e128775 4E3F9A59-B628-507B-AA55-8B74BC462D31 Q130644039
-## 6          Liopholis purnululu Q408            Australia        10.11646/zootaxa.5551.2.4 EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB Q132079142
-## 7              Litoria sibilus Q408            Australia        10.11646/zootaxa.5406.1.1 03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA Q125024287
-## 8       Naisdoris labalsaensis Q408            Australia        10.11646/zootaxa.5443.4.3 03B587E3-FFDF-EE06-00F9-4B27FD01FE9F Q132166165
-## 9          Samadinia jimlowryi Q408            Australia 10.3853/j.2201-4349.75.2023.1876 03B8E56D-1702-7E68-0F60-B4835ED23916 Q132166166
-## 10     Heteroclinus longicauda Q408            Australia        10.11646/zootaxa.5432.3.1 933987E1-FFFC-FFFC-80A3-989AFC25A2E4 Q132166170</code></pre>
+print(df1)</code></pre>
+<pre><code>##                                                                                                                                                                   species_name
+## 1                                                                                                                                                              Panaspis ericae
+## 2                                                                                                                                                        Minibiotus dispositus
+## 3                                                                                                                                                                 Ctenomys uco
+## 4                                                                                                                                                  Xanthomelon amurndamilumila
+## 5                                                                                                                                                          Diplodactylus fyfei
+## 6                                                                                                                                                          Liopholis purnululu
+## 7                                                                                                                                                              Litoria sibilus
+## 8                                                                                                                                                       Naisdoris labalsaensis
+## 9                                                                                                                                                          Samadinia jimlowryi
+## 10                                                                                                                                                     Heteroclinus longicauda
+## 11                                                                                                                                                            Liopholis aputja
+## 12                                                                                                                                                   Trichothraupis griseonota
+## 13                                                                                                                                                    Tropidurus madeiramamore
+## 14                                                                                                                                                       Brachycephalus dacnis
+## 15                                                                                                                                                  Melanorivulus melanopterus
+## 16                                                                                                                                                   Pararrhopalites iataganii
+## 17                                                                                                                                                        Xangoniscus antiquus
+## 18                                                                                                                                                             Aegla urussanga
+## 19                                                                                                                                                       Cosmioconcha costorum
+## 20                                                                                                                                                       Philothalpus precious
+## 21                                                                                                                                              Microsternarchus longicaudatus
+## 22                                                                                                                                                          Priocharax conwayi
+## 23                                                                                                                                                        Melanorivulus terena
+## 24                                                                                                                                                     Xangoniscus chaimowiczi
+## 25                                                                                                                                                          Hapalopus guidonae
+## 26                                                                                                                                                         Circoniscus mendesi
+## 27                                                                                                                                                        Mycena lamprocephala
+## 28                                                                                                                                                     Ctenorillo intertidalis
+## 29                                                                                                                                                       Amphisbaena amethysta
+## 30                                                                                                                                                           Charidotis rochai
+## 31                                                                                                                                                            Neoconger hygomi
+## 32                                                                                                                                                        Cerithiopsis pisinna
+## 33                                                                                                                                                        Anapolisia amazonica
+## 34                                                                                                                                                        Chironius dracomaris
+## 35                                                                                                                                                        Loxosceles bodoquena
+## 36                                                                                                                                                          Mesopolobus askewi
+## 37                                                                                                                                                    Hemiphyllodactylus bokor
+## 38                                                                                                                                                             Zanna limbourgi
+## 39                                                                                                                                                        Digentia viridissima
+## 40                                                                                                                                                            Alucita sokolovi
+## 41                                                                                                                                                      Perilampus neodiprioni
+## 42                                                                                                                                                         Aldrichiopa serrata
+## 43                                                                                                                                                     Pristerophora rothmanni
+## 44                                                                                                                                                    Sinaxonopsis hainanensis
+## 45                                                                                                                                                        Lucanus zhanbishengi
+## 46                                                                                                                                                 Platyintybia zhongshanensis
+## 47                                                                                                                                                       Tachysurus wuyueensis
+## 48                                                                                                                                                         Hesperus flexibilis
+## 49                                                                                                                                                      Phyllomictis chinensis
+## 50                                                                                                                                                           Psellonus dawanqu
+## 51                                                                                                                                                          Buprestis gengmini
+## 52                                                                                                                                                        Russula lilaceofusca
+## 53                                                                                                                                                       Woznessenskia lianhua
+## 54                                                                                                                                                        Platydracus aureolus
+## 55                                                                                                                                                           Sinocamaena cheni
+## 56                                                                                                                                                       Sinlathrobium assingi
+## 57                                                                                                                                                     Grandinenia jiangjilini
+## 58                                                                                                                                                  Karstsinnectes cehengensis
+## 59                                                                                                                                                      Sinodromus fujianensis
+## 60                                                                                                                                                              Hesperus pengi
+## 61                                                                                                                                                  Trichoderma strophariensis
+## 62                                                                                                                                                    Ankylopteryx hainanensis
+## 63                                                                                                                                                      Phyllothelys qingjinum
+## 64                                                                                                                                                       Liobagrus chenhaojuni
+## 65                                                                                                                                                Gerronema brunneosquamulosum
+## 66                                                                                                                                                    Opsariichthys iridescens
+## 67                                                                                                                                                          Dindymus albonotum
+## 68                                                                                                                                                           Amemboa hainanica
+## 69                                                                                                                                                      Pseudopostolata angula
+## 70                                                                                                                                                     Ponyalis dabieshanensis
+## 71                                                                                                                                                               Sora phyllopa
+## 72                                                                                                                                                           Lucanus qizhihaoi
+## 73                                                                                                                                                               Amolops yangi
+## 74                                                                                                                                                            Isonychia latias
+## 75                                                                                                                                               Tylototriton gaowangjienensis
+## 76                                                                                                                                                 Rhinogobius lithopolychroma
+## 77                                                                                                                                                    Chrysolina changbaishana
+## 78                                                                                                                                                 Marasmiellomycena tomentosa
+## 79                                                                                                                                                         Tiwaripotamon keeae
+## 80                                                                                                                                                       Pluteus aurantioruber
+## 81                                                                                                                                                               Calotes wangi
+## 82                                                                                                                                                         Paranemachilus liui
+## 83                                                                                                                                                     Gekko paucituberculatus
+## 84                                                                                                                                                        Rhacophorus qiongica
+## 85                                                                                                                                                        Thelcticopis chongzu
+## 86                                                                                                                                                 Pseudopoda qizimeishanensis
+## 87                                                                                                                                                    Aureoboletus wusangongii
+## 88                                                                                                                                                               Panorpa jinfo
+## 89                                                                                                                                                         Hericium yunnanense
+## 90                                                                                                                                                      Oreolalax yanyuanensis
+## 91                                                                                                                                                    Sinocyclocheilus guiyang
+## 92                                                                                                                                                              Anorthoa wangi
+## 93                                                                                                                                                          Arria qinlingensis
+## 94                                                                                                                                                  Amoenoboletus brachysporus
+## 95                                                                                                                                                              Neptis kejiaae
+## 96                                                                                                                                                      Raorchestes hekouensis
+## 97                                                                                                                                                      Triplophysa ziyunensis
+## 98                                                                                                                                                    Xenophrys yingjiangensis
+## 99                                                                                                                                                            Panus minisporus
+## 100                                                                                                                                                    Beaufortia granulopinna
+## 101 A newly discovered Hydrangeaceae from &lt;a href=&quot;https://mastodon.green/tags/china&quot; class=&quot;mention hashtag&quot; rel=&quot;nofollow noopener&quot; target=&quot;_blank&quot;&gt;#&lt;span&gt;china&lt;/span&gt;&lt;/a&gt;!
+## 102                                                                                                                                                Eustrangalis fuscisuturalis
+## 103                                                                                                                                                           Ovophis jenkinsi
+## 104                                                                                                                                                                Icius faker
+## 105                                                                                                                                                           Hua censongyangi
+## 106                                                                                                                                               Hypselotriton huanggangensis
+## 107                                                                                                                                                     Apharinodes baixiensis
+## 108                                                                                                                                                             Latouchia yaoi
+## 109                                                                                                                                                      Odorrana leishanensis
+## 110                                                                                                                                                 Mongoloniscus polyacanthum
+## 111                                                                                                                                                       Rondotia melanoleuca
+## 112                                                                                                                                                                  Icius kui
+## 113                                                                                                                                                        Ramaria xizangensis
+## 114                                                                                                                                                 Homogryllacris nigromacula
+## 115                                                                                                                                                  Karstsinnectes daxinensis
+## 116                                                                                                                                                        Tropidophorus vongx
+## 117                                                                                                                                                        Angusta fangtingyui
+## 118                                                                                                                                                          Rhinella kumanday
+## 119                                                                                                                                                     Troglotayosicus akaido
+## 120                                                                                                                                                            Rhaucus artifex
+## 121                                                                                                                                                          Alipumilio aureus
+## 122                                                                                                                                                         Muscuspina neblina
+## 123                                                                                                                                                      Tigridania magdalenae
+## 124                                                                                                                                                         Mabuya yasuniensis
+## 125                                                                                                                                                        Iphisa brunopereira
+## 126                                                                                                                                                          Piezonemus espoch
+## 127                                                                                                                                                          Corades yanacocha
+## 128                                                                                                                                                        Hyloscirtus arcanus
+## 129                                                                                                                                                     Psalmopoeus pristirana
+## 130                                                                                                                                                   Trychopeplus mashpiensis
+## 131                                                                                                                                                  Pristimantis normaewingae
+## 132                                                                                                                                                      Enchenopa chocoandina
+## 133                                                                                                                                                      Oroperipatus tiputini
+## 134                                                                                                                                                         Thomasomys otavalo
+## 135                                                                                                                                                          Centrolene kutuku
+## 136                                                                                                                                                          Enchenopa gennyae
+## 137                                                                                                                                                          Boaedon broadleyi
+## 138                                                                                                                                                        Hoplitis onosmaevae
+## 139                                                                                                                                                           Liotyphlops pino
+## 140                                                                                                                                                         Halirages spongiae
+## 141                                                                                                                                                           Ghatiana dvirupa
+## 142                                                                                                                                                      Taeniogonalos deepaki
+## 143                                                                                                                                                           Agaricus indicus
+## 144                                                                                                                                                      Nanosesarma gomantaka
+## 145                                                                                                                                                    Cnemaspis agamalaiensis
+## 146                                                                                                                                                          Dacus nagarathnae
+## 147                                                                                                                                                        Meridindia magnolia
+## 148                                                                                                                                                    Sphaerotheca varshaabhu
+## 149                                                                                                                                                           Ariosoma kannani
+## 150                                                                                                                                                   Sinodrepanus schoenfeldi
+## 151                                                                                                                                                          Cnemaspis sanctus
+## 152                                                                                                                                                    Raorchestes asakgrensis
+## 153                                                                                                                                                      Ditha shivanparaensis
+## 154                                                                                                                                                  Kalliapseudes kanyakumari
+## 155                                                                                                                                                        Tenkana jayamangali
+## 156                                                                                                                                                     Cnemaspis geethaiyerae
+## 157                                                                                                                                                    Uropeltis caudomaculata
+## 158                                                                                                                                                 Cnemaspis sathuragiriensis
+## 159                                                                                                                                                   Tritaeniopteron obscurum
+## 160                                                                                                                                                      Phintella rajbharathi
+## 161                                                                                                                                                    Batillipes chandrayaani
+## 162                                                                                                                                            Stenaelurillus judithbleisterae
+## 163                                                                                                                                                      Cypselurus persimilis
+## 164                                                                                                                                                             Calotes sinyik
+## 165                                                                                                                                                           Geosesarma riani
+## 166                                                                                                                                                        Microphis arrakisae
+## 167                                                                                                                                                        Coccorchestes spark
+## 168                                                                                                                                                        Doliops comvalensis
+## 169                                                                                                                                                       Cherax pulverulentus
+## 170                                                                                                                                                    Apotomorhamphus geminus
+## 171                                                                                                                                                       Macrorhynchia fallax
+## 172                                                                                                                                                        Cabdio occidentalis
+## 173                                                                                                                                                  Stenasellus stygopersicus
+## 174                                                                                                                                                  Microdontomerus iriphagus
+## 175                                                                                                                                                 Acanthoniscus richardsonae
+## 176                                                                                                                                                          Eiconaxius kaimei
+## 177                                                                                                                                                       Leipsuropus seisuiae
+## 178                                                                                                                                                    Potamalpheops yamakawai
+## 179                                                                                                                                                  Nipponocalisius tomokunii
+## 180                                                                                                                                                     Careproctus barbatulus
+## 181                                                                                                                                                       Metopelloides lowryi
+## 182                                                                                                                                                    Paragonaster hoeimaruae
+## 183                                                                                                                                                    Protolembos ryukyuensis
+## 184                                                                                                                                                     Palaemon parvibrachium
+## 185                                                                                                                                                           Microvelia minsa
+## 186                                                                                                                                                  Careproctus longibarbatus
+## 187                                                                                                                                                      Sinoennea houaphanica
+## 188                                                                                                                                                       Laohajekia uniformis
+## 189                                                                                                                                                       Rhinolophus cervenyi
+## 190                                                                                                                                                         Marphysa ibaiensis
+## 191                                                                                                                                                   Paranthrenella tricincta
+## 192                                                                                                                                                        Thamnophis ahumadai
+## 193                                                                                                                                                        Thelephora pacifica
+## 194                                                                                                                                                            Ophioderma aija
+## 195                                                                                                                                                     Tomopterna banhinensis
+## 196                                                                                                                                                            Channa coccinea
+## 197                                                                                                                                                      Bensonella lophiodera
+## 198                                                                                                                                                       Channa pyrophthalmus
+## 199                                                                                                                                                             Calotes iadina
+## 200                                                                                                                                                          Favartia jansseni
+## 201                                                                                                                                                      Gopkittisak ngankeeae
+## 202                                                                                                                                              Hymenagaricus wadijarzeezicus
+## 203                                                                                                                                                       Athanas claereboudti
+## 204                                                                                                                                                      Corynotopsis omanicus
+## 205                                                                                                                                                    Xerophorus pakistanicus
+## 206                                                                                                                                                         Stolephorus astrum
+## 207                                                                                                                                              Ochaechulla spinturniciformis
+## 208                                                                                                                                                           Coecobrya urbana
+## 209                                                                                                                                                     Armadillidium boalense
+## 210                                                                                                                                                             Yirrkala nkust
+## 211                                                                                                                                                 Luciogobius opisthoproctus
+## 212                                                                                                                                                     Oryzias chenglongensis
+## 213                                                                                                                                                  Cryptocentrus taiwanensis
+## 214                                                                                                                                                        Callogobius aquilus
+## 215                                                                                                                                                Attemsostreptus leptoptilos
+## 216                                                                                                                                                         Trimeresurus lanna
+## 217                                                                                                                                                  Marasmiellus thailandicus
+## 218                                                                                                                                                     Oligodon speleoserpens
+## 219                                                                                                                                                         Leiolepis glaurung
+## 220                                                                                                                                                           Georissa sagitta
+## 221                                                                                                                                                      Tylototriton soimalai
+## 222                                                                                                                                                          Dicnecidia browni
+## 223                                                                                                                                                      Trimeresurus kraensis
+## 224                                                                                                                                                     Microhyla peninsularis
+## 225                                                                                                                                                    Asproinocybe hongyaniae
+## 226                                                                                                                                                        Hercostomus obtusus
+## 227                                                                                                                                                    Dixonius chotjuckdikuli
+## 228                                                                                                                                                       Cnemaspis enneaporus
+## 229                                                                                                                                                         Siamaxytes bifurca
+## 230                                                                                                                                               Trimeresurus tenasserimensis
+## 231                                                                                                                                                           Chimaera supapae
+## 232                                                                                                                                                     Georissa quinquelirata
+## 233                                                                                                                                                            Saiva constanti
+## 234                                                                                                                                                         Sigambra sirilukae
+## 235                                                                                                                                                     Crepidotus roseocarpus
+## 236                                                                                                                                                        Bungarus sagittatus
+## 237                                                                                                                                                    Rhampholeon monteslunae
+## 238                                                                                                                                                          Sarinda contraluz
+## 239                                                                                                                                                           Mycovartes khoii
+## 240                                                                                                                                                          Bathynomus vaderi
+## 241                                                                                                                                                 Rhinogobius phuocbinhensis
+## 242                                                                                                                                                   Sycanus thuathienhuensis
+## 243                                                                                                                                                Goniopsarites mientrunganus
+## 244                                                                                                                                                          Kaloula discordia
+## 245                                                                                                                                                         Scincella ouboteri
+## 246                                                                                                                                                     Poropuntius anlaoensis
+## 247                                                                                                                                                   Trimeresurus cyanolabris
+## 248                                                                                                                                                Rhizophoracepon magnagibbus
+## 249                                                                                                                                                     Pseudochoutagus lindae
+## 250                                                                                                                                                         Cyrtodactylus luci
+## 251                                                                                                                                                            Buprestis wenii
+## 252                                                                                                                                                    Myrrophis dakkrongensis
+## 253                                                                                                                                                       Hebius citrinoventer
+## 254                                                                                                                                                         Indochinamon datii
+## 255                                                                                                                                                        Typhlomys taxuansis
+## 256                                                                                                                                                        Colubroelaps adleri
+## 257                                                                                                                                                          Dibamus deimontis
+## 258                                                                                                                                                    Connelicita bachmaensis
+## 259                                                                                                                                                         Oreolalax adelphos
+## 260                                                                                                                                                          Lycodon poyarkovi
+## 261                                                                                                                                                    Dedalopterus lexuanhuei
+## 262                                                                                                                                              Hemiphyllodactylus vanhoensis
+## 263                                                                                                                                                       Gymnothorax arabicus
+## 264                                                                                                                                                          Adoretus kennedyi
+##                                                                                                                                                                          taxon
+## 1                                                                                                                                                              Panaspis ericae
+## 2                                                                                                                                                        Minibiotus dispositus
+## 3                                                                                                                                                                 Ctenomys uco
+## 4                                                                                                                                                  Xanthomelon amurndamilumila
+## 5                                                                                                                                                          Diplodactylus fyfei
+## 6                                                                                                                                                          Liopholis purnululu
+## 7                                                                                                                                                              Litoria sibilus
+## 8                                                                                                                                                       Naisdoris labalsaensis
+## 9                                                                                                                                                          Samadinia jimlowryi
+## 10                                                                                                                                                     Heteroclinus longicauda
+## 11                                                                                                                                                            Liopholis aputja
+## 12                                                                                                                                                   Trichothraupis griseonota
+## 13                                                                                                                                                    Tropidurus madeiramamore
+## 14                                                                                                                                                       Brachycephalus dacnis
+## 15                                                                                                                                                  Melanorivulus melanopterus
+## 16                                                                                                                                                   Pararrhopalites iataganii
+## 17                                                                                                                                                        Xangoniscus antiquus
+## 18                                                                                                                                                             Aegla urussanga
+## 19                                                                                                                                                       Cosmioconcha costorum
+## 20                                                                                                                                                       Philothalpus precious
+## 21                                                                                                                                              Microsternarchus longicaudatus
+## 22                                                                                                                                                          Priocharax conwayi
+## 23                                                                                                                                                        Melanorivulus terena
+## 24                                                                                                                                                     Xangoniscus chaimowiczi
+## 25                                                                                                                                                          Hapalopus guidonae
+## 26                                                                                                                                                         Circoniscus mendesi
+## 27                                                                                                                                                        Mycena lamprocephala
+## 28                                                                                                                                                     Ctenorillo intertidalis
+## 29                                                                                                                                                       Amphisbaena amethysta
+## 30                                                                                                                                                           Charidotis rochai
+## 31                                                                                                                                                            Neoconger hygomi
+## 32                                                                                                                                                        Cerithiopsis pisinna
+## 33                                                                                                                                                        Anapolisia amazonica
+## 34                                                                                                                                                        Chironius dracomaris
+## 35                                                                                                                                                        Loxosceles bodoquena
+## 36                                                                                                                                                          Mesopolobus askewi
+## 37                                                                                                                                                    Hemiphyllodactylus bokor
+## 38                                                                                                                                                             Zanna limbourgi
+## 39                                                                                                                                                        Digentia viridissima
+## 40                                                                                                                                                            Alucita sokolovi
+## 41                                                                                                                                                      Perilampus neodiprioni
+## 42                                                                                                                                                         Aldrichiopa serrata
+## 43                                                                                                                                                     Pristerophora rothmanni
+## 44                                                                                                                                                    Sinaxonopsis hainanensis
+## 45                                                                                                                                                        Lucanus zhanbishengi
+## 46                                                                                                                                                 Platyintybia zhongshanensis
+## 47                                                                                                                                                       Tachysurus wuyueensis
+## 48                                                                                                                                                         Hesperus flexibilis
+## 49                                                                                                                                                      Phyllomictis chinensis
+## 50                                                                                                                                                           Psellonus dawanqu
+## 51                                                                                                                                                          Buprestis gengmini
+## 52                                                                                                                                                        Russula lilaceofusca
+## 53                                                                                                                                                       Woznessenskia lianhua
+## 54                                                                                                                                                        Platydracus aureolus
+## 55                                                                                                                                                           Sinocamaena cheni
+## 56                                                                                                                                                       Sinlathrobium assingi
+## 57                                                                                                                                                     Grandinenia jiangjilini
+## 58                                                                                                                                                  Karstsinnectes cehengensis
+## 59                                                                                                                                                      Sinodromus fujianensis
+## 60                                                                                                                                                              Hesperus pengi
+## 61                                                                                                                                                  Trichoderma strophariensis
+## 62                                                                                                                                                    Ankylopteryx hainanensis
+## 63                                                                                                                                                      Phyllothelys qingjinum
+## 64                                                                                                                                                       Liobagrus chenhaojuni
+## 65                                                                                                                                                Gerronema brunneosquamulosum
+## 66                                                                                                                                                    Opsariichthys iridescens
+## 67                                                                                                                                                          Dindymus albonotum
+## 68                                                                                                                                                           Amemboa hainanica
+## 69                                                                                                                                                      Pseudopostolata angula
+## 70                                                                                                                                                     Ponyalis dabieshanensis
+## 71                                                                                                                                                               Sora phyllopa
+## 72                                                                                                                                                           Lucanus qizhihaoi
+## 73                                                                                                                                                               Amolops yangi
+## 74                                                                                                                                                            Isonychia latias
+## 75                                                                                                                                               Tylototriton gaowangjienensis
+## 76                                                                                                                                                 Rhinogobius lithopolychroma
+## 77                                                                                                                                                    Chrysolina changbaishana
+## 78                                                                                                                                                 Marasmiellomycena tomentosa
+## 79                                                                                                                                                         Tiwaripotamon keeae
+## 80                                                                                                                                                       Pluteus aurantioruber
+## 81                                                                                                                                                               Calotes wangi
+## 82                                                                                                                                                         Paranemachilus liui
+## 83                                                                                                                                                     Gekko paucituberculatus
+## 84                                                                                                                                                        Rhacophorus qiongica
+## 85                                                                                                                                                        Thelcticopis chongzu
+## 86                                                                                                                                                 Pseudopoda qizimeishanensis
+## 87                                                                                                                                                    Aureoboletus wusangongii
+## 88                                                                                                                                                               Panorpa jinfo
+## 89                                                                                                                                                         Hericium yunnanense
+## 90                                                                                                                                                      Oreolalax yanyuanensis
+## 91                                                                                                                                                    Sinocyclocheilus guiyang
+## 92                                                                                                                                                              Anorthoa wangi
+## 93                                                                                                                                                          Arria qinlingensis
+## 94                                                                                                                                                  Amoenoboletus brachysporus
+## 95                                                                                                                                                              Neptis kejiaae
+## 96                                                                                                                                                      Raorchestes hekouensis
+## 97                                                                                                                                                      Triplophysa ziyunensis
+## 98                                                                                                                                                    Xenophrys yingjiangensis
+## 99                                                                                                                                                            Panus minisporus
+## 100                                                                                                                                                    Beaufortia granulopinna
+## 101 A newly discovered Hydrangeaceae from &lt;a href=&quot;https://mastodon.green/tags/china&quot; class=&quot;mention hashtag&quot; rel=&quot;nofollow noopener&quot; target=&quot;_blank&quot;&gt;#&lt;span&gt;china&lt;/span&gt;&lt;/a&gt;!
+## 102                                                                                                                                                Eustrangalis fuscisuturalis
+## 103                                                                                                                                                           Ovophis jenkinsi
+## 104                                                                                                                                                                Icius faker
+## 105                                                                                                                                                           Hua censongyangi
+## 106                                                                                                                                               Hypselotriton huanggangensis
+## 107                                                                                                                                                     Apharinodes baixiensis
+## 108                                                                                                                                                             Latouchia yaoi
+## 109                                                                                                                                                      Odorrana leishanensis
+## 110                                                                                                                                                 Mongoloniscus polyacanthum
+## 111                                                                                                                                                       Rondotia melanoleuca
+## 112                                                                                                                                                                  Icius kui
+## 113                                                                                                                                                        Ramaria xizangensis
+## 114                                                                                                                                                 Homogryllacris nigromacula
+## 115                                                                                                                                                  Karstsinnectes daxinensis
+## 116                                                                                                                                                        Tropidophorus vongx
+## 117                                                                                                                                                        Angusta fangtingyui
+## 118                                                                                                                                                          Rhinella kumanday
+## 119                                                                                                                                                     Troglotayosicus akaido
+## 120                                                                                                                                                            Rhaucus artifex
+## 121                                                                                                                                                          Alipumilio aureus
+## 122                                                                                                                                                         Muscuspina neblina
+## 123                                                                                                                                                      Tigridania magdalenae
+## 124                                                                                                                                                         Mabuya yasuniensis
+## 125                                                                                                                                                        Iphisa brunopereira
+## 126                                                                                                                                                          Piezonemus espoch
+## 127                                                                                                                                                          Corades yanacocha
+## 128                                                                                                                                                        Hyloscirtus arcanus
+## 129                                                                                                                                                     Psalmopoeus pristirana
+## 130                                                                                                                                                   Trychopeplus mashpiensis
+## 131                                                                                                                                                  Pristimantis normaewingae
+## 132                                                                                                                                                      Enchenopa chocoandina
+## 133                                                                                                                                                      Oroperipatus tiputini
+## 134                                                                                                                                                         Thomasomys otavalo
+## 135                                                                                                                                                          Centrolene kutuku
+## 136                                                                                                                                                          Enchenopa gennyae
+## 137                                                                                                                                                          Boaedon broadleyi
+## 138                                                                                                                                                        Hoplitis onosmaevae
+## 139                                                                                                                                                           Liotyphlops pino
+## 140                                                                                                                                                         Halirages spongiae
+## 141                                                                                                                                                           Ghatiana dvirupa
+## 142                                                                                                                                                      Taeniogonalos deepaki
+## 143                                                                                                                                                           Agaricus indicus
+## 144                                                                                                                                                      Nanosesarma gomantaka
+## 145                                                                                                                                                    Cnemaspis agamalaiensis
+## 146                                                                                                                                                          Dacus nagarathnae
+## 147                                                                                                                                                        Meridindia magnolia
+## 148                                                                                                                                                    Sphaerotheca varshaabhu
+## 149                                                                                                                                                           Ariosoma kannani
+## 150                                                                                                                                                   Sinodrepanus schoenfeldi
+## 151                                                                                                                                                          Cnemaspis sanctus
+## 152                                                                                                                                                    Raorchestes asakgrensis
+## 153                                                                                                                                                      Ditha shivanparaensis
+## 154                                                                                                                                                  Kalliapseudes kanyakumari
+## 155                                                                                                                                                        Tenkana jayamangali
+## 156                                                                                                                                                     Cnemaspis geethaiyerae
+## 157                                                                                                                                                    Uropeltis caudomaculata
+## 158                                                                                                                                                 Cnemaspis sathuragiriensis
+## 159                                                                                                                                                   Tritaeniopteron obscurum
+## 160                                                                                                                                                      Phintella rajbharathi
+## 161                                                                                                                                                    Batillipes chandrayaani
+## 162                                                                                                                                            Stenaelurillus judithbleisterae
+## 163                                                                                                                                                      Cypselurus persimilis
+## 164                                                                                                                                                             Calotes sinyik
+## 165                                                                                                                                                           Geosesarma riani
+## 166                                                                                                                                                        Microphis arrakisae
+## 167                                                                                                                                                        Coccorchestes spark
+## 168                                                                                                                                                        Doliops comvalensis
+## 169                                                                                                                                                       Cherax pulverulentus
+## 170                                                                                                                                                    Apotomorhamphus geminus
+## 171                                                                                                                                                       Macrorhynchia fallax
+## 172                                                                                                                                                        Cabdio occidentalis
+## 173                                                                                                                                                  Stenasellus stygopersicus
+## 174                                                                                                                                                  Microdontomerus iriphagus
+## 175                                                                                                                                                 Acanthoniscus richardsonae
+## 176                                                                                                                                                          Eiconaxius kaimei
+## 177                                                                                                                                                       Leipsuropus seisuiae
+## 178                                                                                                                                                    Potamalpheops yamakawai
+## 179                                                                                                                                                  Nipponocalisius tomokunii
+## 180                                                                                                                                                     Careproctus barbatulus
+## 181                                                                                                                                                       Metopelloides lowryi
+## 182                                                                                                                                                    Paragonaster hoeimaruae
+## 183                                                                                                                                                    Protolembos ryukyuensis
+## 184                                                                                                                                                     Palaemon parvibrachium
+## 185                                                                                                                                                           Microvelia minsa
+## 186                                                                                                                                                  Careproctus longibarbatus
+## 187                                                                                                                                                      Sinoennea houaphanica
+## 188                                                                                                                                                       Laohajekia uniformis
+## 189                                                                                                                                                       Rhinolophus cervenyi
+## 190                                                                                                                                                         Marphysa ibaiensis
+## 191                                                                                                                                                   Paranthrenella tricincta
+## 192                                                                                                                                                        Thamnophis ahumadai
+## 193                                                                                                                                                        Thelephora pacifica
+## 194                                                                                                                                                            Ophioderma aija
+## 195                                                                                                                                                     Tomopterna banhinensis
+## 196                                                                                                                                                            Channa coccinea
+## 197                                                                                                                                                      Bensonella lophiodera
+## 198                                                                                                                                                       Channa pyrophthalmus
+## 199                                                                                                                                                             Calotes iadina
+## 200                                                                                                                                                          Favartia jansseni
+## 201                                                                                                                                                      Gopkittisak ngankeeae
+## 202                                                                                                                                              Hymenagaricus wadijarzeezicus
+## 203                                                                                                                                                       Athanas claereboudti
+## 204                                                                                                                                                      Corynotopsis omanicus
+## 205                                                                                                                                                    Xerophorus pakistanicus
+## 206                                                                                                                                                         Stolephorus astrum
+## 207                                                                                                                                              Ochaechulla spinturniciformis
+## 208                                                                                                                                                           Coecobrya urbana
+## 209                                                                                                                                                     Armadillidium boalense
+## 210                                                                                                                                                             Yirrkala nkust
+## 211                                                                                                                                                 Luciogobius opisthoproctus
+## 212                                                                                                                                                     Oryzias chenglongensis
+## 213                                                                                                                                                  Cryptocentrus taiwanensis
+## 214                                                                                                                                                        Callogobius aquilus
+## 215                                                                                                                                                Attemsostreptus leptoptilos
+## 216                                                                                                                                                         Trimeresurus lanna
+## 217                                                                                                                                                  Marasmiellus thailandicus
+## 218                                                                                                                                                     Oligodon speleoserpens
+## 219                                                                                                                                                         Leiolepis glaurung
+## 220                                                                                                                                                           Georissa sagitta
+## 221                                                                                                                                                      Tylototriton soimalai
+## 222                                                                                                                                                          Dicnecidia browni
+## 223                                                                                                                                                      Trimeresurus kraensis
+## 224                                                                                                                                                     Microhyla peninsularis
+## 225                                                                                                                                                    Asproinocybe hongyaniae
+## 226                                                                                                                                                        Hercostomus obtusus
+## 227                                                                                                                                                    Dixonius chotjuckdikuli
+## 228                                                                                                                                                       Cnemaspis enneaporus
+## 229                                                                                                                                                         Siamaxytes bifurca
+## 230                                                                                                                                               Trimeresurus tenasserimensis
+## 231                                                                                                                                                           Chimaera supapae
+## 232                                                                                                                                                     Georissa quinquelirata
+## 233                                                                                                                                                            Saiva constanti
+## 234                                                                                                                                                         Sigambra sirilukae
+## 235                                                                                                                                                     Crepidotus roseocarpus
+## 236                                                                                                                                                        Bungarus sagittatus
+## 237                                                                                                                                                    Rhampholeon monteslunae
+## 238                                                                                                                                                          Sarinda contraluz
+## 239                                                                                                                                                           Mycovartes khoii
+## 240                                                                                                                                                          Bathynomus vaderi
+## 241                                                                                                                                                 Rhinogobius phuocbinhensis
+## 242                                                                                                                                                   Sycanus thuathienhuensis
+## 243                                                                                                                                                Goniopsarites mientrunganus
+## 244                                                                                                                                                          Kaloula discordia
+## 245                                                                                                                                                         Scincella ouboteri
+## 246                                                                                                                                                     Poropuntius anlaoensis
+## 247                                                                                                                                                   Trimeresurus cyanolabris
+## 248                                                                                                                                                Rhizophoracepon magnagibbus
+## 249                                                                                                                                                     Pseudochoutagus lindae
+## 250                                                                                                                                                         Cyrtodactylus luci
+## 251                                                                                                                                                            Buprestis wenii
+## 252                                                                                                                                                    Myrrophis dakkrongensis
+## 253                                                                                                                                                       Hebius citrinoventer
+## 254                                                                                                                                                         Indochinamon datii
+## 255                                                                                                                                                        Typhlomys taxuansis
+## 256                                                                                                                                                        Colubroelaps adleri
+## 257                                                                                                                                                          Dibamus deimontis
+## 258                                                                                                                                                    Connelicita bachmaensis
+## 259                                                                                                                                                         Oreolalax adelphos
+## 260                                                                                                                                                          Lycodon poyarkovi
+## 261                                                                                                                                                    Dedalopterus lexuanhuei
+## 262                                                                                                                                              Hemiphyllodactylus vanhoensis
+## 263                                                                                                                                                       Gymnothorax arabicus
+## 264                                                                                                                                                          Adoretus kennedyi
+##        qid country_of_discovery                                 doi
+## 1     Q916               Angola           10.3897/evolsyst.8.121103
+## 2     Q414            Argentina           10.5852/ejt.2024.958.2663
+## 3     Q414            Argentina               10.3897/vz.74.e115242
+## 4     Q408            Australia              10.3897/zse.100.113243
+## 5     Q408            Australia               10.3897/vz.74.e128775
+## 6     Q408            Australia           10.11646/zootaxa.5551.2.4
+## 7     Q408            Australia           10.11646/zootaxa.5406.1.1
+## 8     Q408            Australia           10.11646/zootaxa.5443.4.3
+## 9     Q408            Australia    10.3853/j.2201-4349.75.2023.1876
+## 10    Q408            Australia           10.11646/zootaxa.5432.3.1
+## 11    Q408            Australia           10.11646/zootaxa.5536.1.6
+## 12    Q750              Bolivia           10.11646/zootaxa.5468.3.7
+## 13    Q155               Brazil          10.1093/zoolinnean/zlad138
+## 14    Q155               Brazil                 10.7717/peerj.18265
+## 15    Q155               Brazil           10.11646/zootaxa.5496.3.2
+## 16    Q155               Brazil           10.11646/zootaxa.5474.3.1
+## 17    Q155               Brazil          10.3897/subtbiol.50.139914
+## 18    Q155               Brazil           10.11646/zootaxa.5418.4.5
+## 19    Q155               Brazil           10.11646/zootaxa.5406.3.9
+## 20    Q155               Brazil           10.11646/zootaxa.5419.3.8
+## 21    Q155               Brazil           10.11646/zootaxa.5448.4.4
+## 22    Q155               Brazil               10.3897/vz.74.e130038
+## 23    Q155               Brazil       10.1080/00222933.2024.2387798
+## 24    Q155               Brazil          10.3897/subtbiol.50.139914
+## 25    Q155               Brazil           10.5852/ejt.2024.947.2611
+## 26    Q155               Brazil           10.5852/ejt.2024.921.2421
+## 27    Q155               Brazil          10.11646/phytotaxa.634.3.1
+## 28    Q155               Brazil         10.5252/zoosystema2024v46a5
+## 29    Q155               Brazil         10.3897/zookeys.1213.122265
+## 30    Q155               Brazil           10.11646/zootaxa.5477.5.6
+## 31    Q155               Brazil           10.11646/zootaxa.5492.1.6
+## 32    Q155               Brazil           10.11646/zootaxa.5494.1.1
+## 33    Q155               Brazil           10.11646/zootaxa.5564.1.1
+## 34    Q155               Brazil               10.3897/vz.74.e106238
+## 35    Q155               Brazil           10.5852/ejt.2024.921.2419
+## 36    Q219             Bulgaria              10.3897/BDJ.12.e139403
+## 37    Q424             Cambodia           10.11646/zootaxa.5537.3.5
+## 38    Q424             Cambodia           10.5852/ejt.2024.958.2665
+## 39   Q1009             Cameroon               10.3897/jor.34.126949
+## 40   Q1009             Cameroon         10.3897/zookeys.1193.111544
+## 41     Q16               Canada               10.3897/jhr.97.133255
+## 42    Q298                Chile           10.11646/zootaxa.5405.3.2
+## 43    Q298                Chile           10.11646/zootaxa.5433.4.8
+## 44  Q29520                China                   10.24349/orqe-mqh
+## 45  Q29520                China                  10.25221/fee.512.1
+## 46  Q29520                China         10.3897/zookeys.1201.123141
+## 47  Q29520                China              10.3897/zse.100.120676
+## 48  Q29520                China           10.11646/zootaxa.5474.5.6
+## 49  Q29520                China           10.11646/zootaxa.5555.1.7
+## 50  Q29520                China                 10.11865/zs.2024101
+## 51  Q29520                China           10.11646/zootaxa.5410.3.1
+## 52  Q29520                China         10.3897/mycokeys.107.123304
+## 53  Q29520                China           10.11646/zootaxa.5418.1.5
+## 54  Q29520                China         10.3897/zookeys.1212.128295
+## 55  Q29520                China         10.3897/zookeys.1202.118964
+## 56  Q29520                China         10.3897/zookeys.1218.128973
+## 57  Q29520                China              10.3897/zse.100.126340
+## 58  Q29520                China                 10.11865/zs.2024204
+## 59  Q29520                China         10.3897/zookeys.1221.137930
+## 60  Q29520                China           10.11646/zootaxa.5474.5.6
+## 61  Q29520                China         10.3897/mycokeys.110.134154
+## 62  Q29520                China           10.11646/zootaxa.5540.1.1
+## 63  Q29520                China              10.3897/BDJ.12.e132161
+## 64  Q29520                China              10.3897/zse.100.122472
+## 65  Q29520                China         10.3897/mycokeys.105.118826
+## 66  Q29520                China         10.3897/zookeys.1214.127532
+## 67  Q29520                China         10.3897/zookeys.1210.125457
+## 68  Q29520                China         10.3897/zookeys.1210.125611
+## 69  Q29520                China              10.3897/zse.100.135217
+## 70  Q29520                China         10.3897/zookeys.1203.120166
+## 71  Q29520                China           10.11646/zootaxa.5406.3.8
+## 72  Q29520                China           10.11646/zootaxa.5541.2.4
+## 73  Q29520                China               10.3897/vz.74.e108013
+## 74  Q29520                China         10.3897/zookeys.1218.137110
+## 75  Q29520                China       10.3897/herpetozoa.37.e135222
+## 76  Q29520                China         10.3897/zookeys.1210.128121
+## 77  Q29520                China                  10.25221/fee.499.1
+## 78  Q29520                China         10.3897/mycokeys.105.118826
+## 79  Q29520                China          10.11646/zootaxa.5476.1.16
+## 80  Q29520                China          10.11646/phytotaxa.629.1.5
+## 81  Q29520                China         10.3897/zookeys.1187.110704
+## 82  Q29520                China              10.3897/zse.100.129520
+## 83  Q29520                China               10.3897/vz.74.e113899
+## 84  Q29520                China              10.3897/zse.100.118879
+## 85  Q29520                China                 10.11865/zs.2024101
+## 86  Q29520                China         10.3897/zookeys.1214.130101
+## 87  Q29520                China          10.11646/phytotaxa.674.2.3
+## 88  Q29520                China             10.37520/aemnp.2024.007
+## 89  Q29520                China          10.11646/phytotaxa.665.3.7
+## 90  Q29520                China         10.3897/zookeys.1212.122222
+## 91  Q29520                China              10.3897/zse.100.119520
+## 92  Q29520                China              10.3897/BDJ.12.e139425
+## 93  Q29520                China       10.1080/00222933.2024.2319894
+## 94  Q29520                China          10.11646/phytotaxa.633.1.6
+## 95  Q29520                China           10.11646/zootaxa.5492.3.9
+## 96  Q29520                China         10.3897/zookeys.1192.106013
+## 97  Q29520                China         10.3897/zookeys.1214.122439
+## 98  Q29520                China              10.3897/zse.100.127635
+## 99  Q29520                China         10.3897/mycokeys.105.121025
+## 100 Q29520                China             10.3897/zse.100.124370 
+## 101 Q29520                China        10.3897/phytokeys.238.114289
+## 102 Q29520                China           10.11646/zootaxa.5453.4.6
+## 103 Q29520                China         10.3897/zookeys.1203.119218
+## 104 Q29520                China           10.11646/zootaxa.5447.2.1
+## 105 Q29520                China               10.37828/em.2024.75.2
+## 106 Q29520                China         10.3897/zookeys.1208.126092
+## 107 Q29520                China              10.3897/BDJ.12.e139609
+## 108 Q29520                China              10.3897/BDJ.12.e137852
+## 109 Q29520                China         10.3897/zookeys.1192.114315
+## 110 Q29520                China         10.3897/zookeys.1202.113560
+## 111 Q29520                China                10.3897/nl.47.109920
+## 112 Q29520                China           10.11646/zootaxa.5447.2.1
+## 113 Q29520                China         10.3897/mycokeys.106.125831
+## 114 Q29520                China           10.11646/zootaxa.5418.1.4
+## 115 Q29520                China              10.3897/zse.100.133964
+## 116 Q29520                China           10.11646/zootaxa.5486.1.6
+## 117 Q29520                China           10.11646/zootaxa.5403.5.4
+## 118   Q739             Colombia         10.3897/zookeys.1196.114861
+## 119   Q739             Colombia                      10.1206/4011.1
+## 120   Q739             Colombia           10.11646/zootaxa.5555.1.3
+## 121   Q739             Colombia           10.11646/zootaxa.5506.3.3
+## 122   Q739             Colombia           10.11646/zootaxa.5437.2.5
+## 123   Q739             Colombia          10.11646/zootaxa.5583.3.12
+## 124   Q736              Ecuador               10.3897/vz.74.e130147
+## 125   Q736              Ecuador          10.1093/zoolinnean/zlad073
+## 126   Q736              Ecuador           10.11646/zootaxa.5415.3.3
+## 127   Q736              Ecuador           10.11646/zootaxa.5453.2.6
+## 128   Q736              Ecuador           10.11646/zootaxa.5474.2.1
+## 129   Q736              Ecuador           10.11646/zootaxa.5437.4.3
+## 130   Q736              Ecuador         10.3897/zookeys.1217.130397
+## 131   Q736              Ecuador           10.3897/evolsyst.8.118855
+## 132   Q736              Ecuador         10.3897/zookeys.1216.124181
+## 133   Q736              Ecuador              10.3897/zse.100.117952
+## 134   Q736              Ecuador               10.3897/vz.74.e128528
+## 135   Q736              Ecuador              10.3897/zse.100.116350
+## 136   Q736              Ecuador         10.3897/zookeys.1216.124181
+## 137   Q115             Ethiopia          10.11646/zootaxa.5569.1.4 
+## 138   Q142               France            10.3897/alpento.8.118039
+## 139   Q783             Honduras           10.11646/zootaxa.5543.1.5
+## 140   Q189              Iceland           10.5852/ejt.2024.930.2487
+## 141   Q668                India           10.11646/zootaxa.5443.1.6
+## 142   Q668                India           10.11646/zootaxa.5419.2.5
+## 143   Q668                India          10.11646/phytotaxa.634.3.5
+## 144   Q668                India           10.11646/zootaxa.5433.2.8
+## 145   Q668                India           10.11646/zootaxa.5469.1.1
+## 146   Q668                India           10.11646/zootaxa.5446.3.3
+## 147   Q668                India           10.11646/zootaxa.5428.2.3
+## 148   Q668                India           10.11646/zootaxa.5405.3.3
+## 149   Q668                India 10.3897/zse.100.116611@Zoosyst_Evo 
+## 150   Q668                India          10.11646/zootaxa.5537.4.10
+## 151   Q668                India           10.11646/zootaxa.5443.3.3
+## 152   Q668                India       10.3897/herpetozoa.37.e122825
+## 153   Q668                India              10.3897/zse.100.110020
+## 154   Q668                India           10.11646/zootaxa.5443.1.3
+## 155   Q668                India         10.3897/zookeys.1215.133522
+## 156   Q668                India       10.1080/00222933.2024.2400730
+## 157   Q668                India           10.11646/zootaxa.5477.3.4
+## 158   Q668                India         10.3897/zookeys.1196.117947
+## 159   Q668                India           10.11646/zootaxa.5506.3.1
+## 160   Q668                India             10.3897/zse.100.113049 
+## 161   Q668                India           10.11646/zootaxa.5446.4.2
+## 162   Q668                India           10.5852/ejt.2024.930.2485
+## 163   Q668                India           10.11646/zootaxa.5473.1.1
+## 164   Q668                India           10.11646/zootaxa.5523.2.1
+## 165   Q252            Indonesia              10.26107/RBZ-2024-0034
+## 166   Q252            Indonesia           10.11646/zootaxa.5536.1.5
+## 167   Q252            Indonesia                 10.11865/zs.2024101
+## 168   Q252            Indonesia                  10.25221/fee.507.3
+## 169   Q252            Indonesia           10.11646/zootaxa.5566.3.4
+## 170   Q252            Indonesia           10.11646/zootaxa.5464.1.1
+## 171   Q252            Indonesia           10.11646/zootaxa.5428.1.1
+## 172   Q794                 Iran           10.11646/zootaxa.5360.3.7
+## 173   Q794                 Iran           10.5852/ejt.2024.968.2733
+## 174   Q794                 Iran               10.3897/jhr.97.115028
+## 175   Q766              Jamaica           10.1590/2358-2936e2023006
+## 176    Q17                Japan           10.11646/zootaxa.5537.3.4
+## 177    Q17                Japan           10.1590/2358-2936e2023005
+## 178    Q17                Japan           10.11646/zootaxa.5555.1.6
+## 179    Q17                Japan           10.11646/zootaxa.5432.1.4
+## 180    Q17                Japan           10.11646/zootaxa.5492.2.3
+## 181    Q17                Japan    10.3853/j.2201-4349.75.2023.1877
+## 182    Q17                Japan       10.1080/00222933.2024.2377336
+## 183    Q17                Japan           10.11646/zootaxa.5433.4.2
+## 184    Q17                Japan           10.11646/zootaxa.5443.3.6
+## 185    Q17                Japan           10.11646/zootaxa.5468.2.6
+## 186    Q17                Japan           10.11646/zootaxa.5492.2.3
+## 187   Q819                 Laos      10.1080/00222933.2024.2407406 
+## 188   Q819                 Laos          10.11646/zootaxa.5506.1.11
+## 189  Q1013              Lesotho          10.1515/mammalia-2023-0119
+## 190   Q833             Malaysia         10.3897/zookeys.1204.117261
+## 191   Q833             Malaysia                  10.25221/fee.494.1
+## 192    Q96               Mexico       10.3897/herpetozoa.37.e122213
+## 193    Q96               Mexico          10.11646/phytotaxa.634.3.2
+## 194    Q96               Mexico           10.5852/ejt.2024.947.2625
+## 195  Q1029           Mozambique           10.11646/zootaxa.5584.1.2
+## 196   Q836              Myanmar              10.26107/RBZ-2024-0001
+## 197   Q836              Myanmar         10.3897/zookeys.1195.112112
+## 198   Q836              Myanmar              10.26107/RBZ-2024-0001
+## 199   Q836              Myanmar               10.3897/vz.74.e109088
+## 200    Q55          Netherlands     10.5252/geodiversitas2024v46a15
+## 201   Q842                 Oman          10.11646/zootaxa.5476.1.19
+## 202   Q842                 Oman         10.3897/mycokeys.105.113591
+## 203   Q842                 Oman           10.11646/zootaxa.5383.2.5
+## 204   Q842                 Oman         10.3897/zookeys.1198.119152
+## 205   Q843             Pakistan          10.11646/phytotaxa.632.1.3
+## 206   Q695                Palau              10.26107/RBZ-2024-0013
+## 207   Q214             Slovakia                  10.24349/tcet-6u2k
+## 208    Q29                Spain          10.3897/subtbiol.49.120956
+## 209    Q29                Spain           10.11646/zootaxa.5497.1.4
+## 210   Q865               Taiwan         10.3897/zookeys.1220.130885
+## 211   Q865               Taiwan         10.3897/zookeys.1206.118757
+## 212   Q865               Taiwan          10.11646/zootaxa.5550.1.32
+## 213   Q865               Taiwan          10.11646/zootaxa.5550.1.17
+## 214   Q865               Taiwan          10.11646/zootaxa.5550.1.16
+## 215   Q924             Tanzania           10.5852/ejt.2024.918.2405
+## 216   Q869             Thailand               10.3897/vz.74.e113347
+## 217   Q869             Thailand         10.3897/mycokeys.109.129791
+## 218   Q869             Thailand               10.3897/vz.74.e112132
+## 219   Q869             Thailand         10.3897/zookeys.1210.127557
+## 220   Q869             Thailand              10.3897/zse.100.128717
+## 221   Q869             Thailand         10.3897/zookeys.1215.116624
+## 222   Q869             Thailand           10.11646/zootaxa.5471.3.6
+## 223   Q869             Thailand           10.5852/ejt.2024.930.2489
+## 224   Q869             Thailand               10.3897/vz.74.e127937
+## 225   Q869             Thailand          10.11646/phytotaxa.640.1.2
+## 226   Q869             Thailand           10.11646/zootaxa.5446.2.2
+## 227   Q869             Thailand           10.11646/zootaxa.5447.4.5
+## 228   Q869             Thailand         10.3897/zookeys.1226.138464
+## 229   Q869             Thailand          10.1093/zoolinnean/zlad164
+## 230   Q869             Thailand               10.3897/vz.74.e113347
+## 231   Q869             Thailand              10.26107/RBZ-2024-0006
+## 232   Q869             Thailand              10.3897/zse.100.128717
+## 233   Q869             Thailand           10.11646/zootaxa.5463.3.6
+## 234   Q869             Thailand           10.11646/zootaxa.5555.1.1
+## 235   Q869             Thailand          10.11646/phytotaxa.646.2.1
+## 236   Q869             Thailand              10.3897/zse.100.116601
+## 237  Q1036               Uganda           10.11646/zootaxa.5458.4.1
+## 238    Q77              Uruguay           10.5852/ejt.2024.925.2455
+## 239   Q881              Vietnam           10.5852/ejt.2024.965.2695
+## 240   Q881              Vietnam         10.3897/zookeys.1223.139335
+## 241   Q881              Vietnam          10.11646/zootaxa.5550.1.35
+## 242   Q881              Vietnam           10.11646/zootaxa.5481.3.1
+## 243   Q881              Vietnam         10.3897/zookeys.1193.114957
+## 244   Q881              Vietnam       10.3897/herpetozoa.37.e137394
+## 245   Q881              Vietnam           10.11646/zootaxa.5428.1.4
+## 246   Q881              Vietnam         10.3897/zookeys.1204.120873
+## 247   Q881              Vietnam           10.11646/zootaxa.5474.4.3
+## 248   Q881              Vietnam              10.26107/RBZ-2023-0040
+## 249   Q881              Vietnam           10.5852/ejt.2024.975.2769
+## 250   Q881              Vietnam         10.3897/zookeys.1192.117135
+## 251   Q881              Vietnam           10.11646/zootaxa.5410.3.1
+## 252   Q881              Vietnam               10.3897/vz.74.e116992
+## 253   Q881              Vietnam         10.3897/zookeys.1206.123841
+## 254   Q881              Vietnam           10.11646/zootaxa.5437.4.8
+## 255   Q881              Vietnam              10.3897/BDJ.12.e133363
+## 256   Q881              Vietnam       10.3897/herpetozoa.37.e137809
+## 257   Q881              Vietnam           10.11646/zootaxa.5406.1.4
+## 258   Q881              Vietnam         10.3897/zookeys.1186.113701
+## 259   Q881              Vietnam           10.11646/zootaxa.5514.6.1
+## 260   Q881              Vietnam           10.11646/zootaxa.5570.3.3
+## 261   Q881              Vietnam           10.11646/zootaxa.5406.1.7
+## 262   Q881              Vietnam           10.11646/zootaxa.5486.1.3
+## 263   Q805                Yemen           10.11646/zootaxa.5477.4.4
+## 264   Q953               Zambia             10.5281/zenodo.10982041
+##                                    plazi  QID_items
+## 1   DF1D1955-945C-44BF-B4FB-5E33548C9EEF Q127815097
+## 2   780E50E1-48E8-474C-8935-070FCD6B09AE Q132163685
+## 3   797C39B9-EADE-4A18-8BD4-4875AD374443 Q124988842
+## 4   37DE5E77-7A67-4069-98C2-9FEA941205C8 Q125696676
+## 5   4E3F9A59-B628-507B-AA55-8B74BC462D31 Q130644039
+## 6   EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB Q132079142
+## 7   03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA Q125024287
+## 8   03B587E3-FFDF-EE06-00F9-4B27FD01FE9F Q132166165
+## 9   03B8E56D-1702-7E68-0F60-B4835ED23916 Q132166166
+## 10  933987E1-FFFC-FFFC-80A3-989AFC25A2E4 Q132166170
+## 11  21D7BF40-8680-436A-B0DA-4D0E3D07D6EE Q131138411
+## 12  590C8795-FFB2-EB54-FF59-517B9AEBB0E0 Q126690227
+## 13  3D0D87B2-981E-FFFE-41A6-EEC4B07D2CF9 Q125262436
+## 14  03C3F71A-8B5F-673E-8086-FCF2FDB2FDCF Q130910241
+## 15  F16887FD-BF66-3955-FF17-F95F26622771 Q132170146
+## 16  50728799-0C34-4C26-B9C0-6FD4FD26FB6F Q132170148
+## 17  1457552D-CC5E-5B1E-A39D-D4E52B46C778 Q132170150
+## 18  DA144134-D507-FFD2-FF09-3A2AE02E4A29 Q125700249
+## 19  038B2411-FFEC-BE30-FF30-54B8FAA3FAF9 Q125700067
+## 20  EE158795-635B-054D-F0DB-1937FBFEFD67 Q125700472
+## 21  9827878A-AC33-FFB8-FF1A-FA3DFB6BF943 Q132173394
+## 22  45B7FA84-A69D-4976-8811-181B8FFD9FC1 Q132173395
+## 23  9C25B380-D5DA-402B-8E98-C0296777AE0B Q132173396
+## 24  B38058FA-49CF-576C-B81C-44DA7969887F       &lt;NA&gt;
+## 25  8727A003-C54F-46C0-9A10-74C2EF371E43 Q128694197
+## 26  039B87F6-FF80-181E-F25C-BAF23D75A676 Q125700050
+## 27  007F352F-FFCA-626A-FF24-75336955B1EE Q125696213
+## 28  B61E5142-E53A-4AD7-AF85-B24944928069 Q125700318
+## 29  697AF1B8-7B5E-5EFA-BEF6-02ADD4E48B4D Q130378829
+## 30  230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E       &lt;NA&gt;
+## 31  246A879B-FFDB-FFCC-FF42-FB8B7C1046EA       &lt;NA&gt;
+## 32  EF009476-3B45-4D35-9B1B-7D4E3E516811       &lt;NA&gt;
+## 33  03905517-C727-F528-39A9-FE31FAD4F809       &lt;NA&gt;
+## 34  E0F5FBF9-C031-4999-B952-7E1F42893B22 Q124833365
+## 35  12887D5F-9548-4062-B85C-9545BB5108FC Q124880926
+## 36  B4F99402-5129-5CF8-810C-2CC35FF57A2F       &lt;NA&gt;
+## 37  D16B87DF-FFA7-7F63-FF16-FDBAF06FF87F Q131337530
+## 38  CDC2CFD0-B1E8-4DA2-8114-5F4BD37D8782 Q130391891
+## 39  51342DEF-CAC8-5780-8B4F-2CDA429EE929       &lt;NA&gt;
+## 40  3D9F4858-D646-4A23-9620-E3C883642BD0 Q125090296
+## 41  51043FC0-89D1-519D-B170-B91312C22CFA       &lt;NA&gt;
+## 42  03F087C0-EA63-FFA6-4ABB-FF3AACB1F8B6 Q125696809
+## 43  03DDC049-FF8C-FF84-FF1B-FA81FEB8795A       &lt;NA&gt;
+## 44  03E28502-3822-395E-FE59-FA10FCBAFE16       &lt;NA&gt;
+## 45  B76087BE-FFA7-FFB7-FF7C-81448019C16E  Q55439211
+## 46  3D5482F4-0D6B-572A-B047-ABBA0CA609ED       &lt;NA&gt;
+## 47  18A16B30-C113-4285-8A76-058999C3D0E1 Q126011919
+## 48  612C87D2-1857-FFE8-EEFC-20CAFCBBA937       &lt;NA&gt;
+## 49  A83C5049-D158-4610-5F9F-7CF8A7059342       &lt;NA&gt;
+## 50  81114138-FFAF-FFCF-7D9F-FB2EC359FDD9 Q124821111
+## 51  2F1F87B4-081C-FFA3-0AE0-FB800623439A Q124611291
+## 52  B4B4A45E-28D5-58CF-BD41-D61BD9C9010A       &lt;NA&gt;
+## 53  7B3287DC-FF81-8E5D-54F7-FEC728975292       &lt;NA&gt;
+## 54  32D8F009-3739-4806-B50A-BED52129DF57       &lt;NA&gt;
+## 55  BAD768FA-1757-4938-83A2-E84FCE83B407       &lt;NA&gt;
+## 56  ECEA11E1-F830-4446-8152-1DDB63001CFD       &lt;NA&gt;
+## 57  5BBDAEB5-9C10-527D-A6D6-DF7527ABCBCB       &lt;NA&gt;
+## 58  0A6AE154-540B-E60D-7BE6-F8101B950DE7       &lt;NA&gt;
+## 59  41059653-9C0C-5EFD-91D5-09E2C260578B Q131545573
+## 60  612C87D2-185E-FFE0-EEFC-27C3FEFAAB1B       &lt;NA&gt;
+## 61  22D20AFB-BC41-5495-B40A-EB53EFFBE5CB       &lt;NA&gt;
+## 62  03B88790-FFBF-FFBD-9EE7-CE959BEF4B3A       &lt;NA&gt;
+## 63  2439DC24-2ED8-4D7E-9B3F-CC1A20D382B7       &lt;NA&gt;
+## 64  9966A844-20BC-4DCD-9E09-A5FFA9F14659       &lt;NA&gt;
+## 65  6C4B7306-B481-5E28-8B7C-C8AA10E358D4       &lt;NA&gt;
+## 66  FADF08EA-9DBC-45A3-9D67-79274C1B3083       &lt;NA&gt;
+## 67  489A818E-C49C-404B-8C65-C2B5C7CFD463       &lt;NA&gt;
+## 68  7D2BD0D7-CDAA-4523-90FB-0C54783AF425       &lt;NA&gt;
+## 69  B1F2A547-13E7-47CF-A80B-FF54B9404AB5       &lt;NA&gt;
+## 70  2569CD85-30DD-5D79-B912-1AAB8B57176B       &lt;NA&gt;
+## 71  FA5B879A-521B-FFFB-FDF1-E3A7FCDAFCC4 Q125700117
+## 72  0395879A-FFF8-3469-FF42-E195FDA0B133       &lt;NA&gt;
+## 73  5B4E8AC7-37AD-4192-83E3-A05E49393B7B Q125342730
+## 74  BDD9DBA9-82B4-4D68-BCF8-42F53CEC10A2       &lt;NA&gt;
+## 75  15A7EEED-B7DA-4C27-BA9F-CE0C53491BA2 Q130813397
+## 76  C1F210C4-1623-4B50-BB2A-F9DBAD7F197A Q130074069
+## 77  E87DC5FA-8AC1-4F69-8BF8-2E20A6F24021       &lt;NA&gt;
+## 78  75656C5C-F842-5871-BDDC-ACDA1742F6A7       &lt;NA&gt;
+## 79  039087AE-D828-FF93-FF61-996CFE000954       &lt;NA&gt;
+## 80  03C3740F-FFDE-3373-FF6F-FD586FAF72D8       &lt;NA&gt;
+## 81  FE6F8314-08C6-47F5-AA6D-E97E45D0E765 Q124325176
+## 82  62C3991C-CF91-4DF5-B446-029287E5E852       &lt;NA&gt;
+## 83  C2814152-01A1-4558-892B-9D538ED1FE9D Q124838162
+## 84  182E48F4-9743-4B7F-A825-FA63499F15F2 Q126032553
+## 85  81114138-FFBC-FFD9-7D9F-FA26C099FD41 Q124821465
+## 86  70F158B3-D851-5EED-AEA3-08964ADD207A Q130459993
+## 87  080C2464-B87F-FFAF-FF5D-FA5D8E807B02       &lt;NA&gt;
+## 88  C549F960-FFB6-6167-FE86-BE28FF3CFE0D       &lt;NA&gt;
+## 89  038287C9-7908-5C7B-CC98-800A840F5C06       &lt;NA&gt;
+## 90  D770076A-DB34-4045-AEF9-FFFBC2FBA5D8 Q131316663
+## 91  67337E27-2D91-4C21-B557-AA36ECABDAA1 Q125948791
+## 92  B9BC0130-B3E2-57C6-915F-04FF90F15CE4       &lt;NA&gt;
+## 93  416C6C5F-FFFF-9C08-12F7-EFF693828879       &lt;NA&gt;
+## 94  03883900-5530-FFB0-FF0D-F984FB6C8327       &lt;NA&gt;
+## 95  7A667364-D3C5-4F79-BA10-5182DF6E4270       &lt;NA&gt;
+## 96  4175879C-5620-49B0-B016-8489657C6069 Q125024193
+## 97  BA4F7B39-A976-4D59-AE66-439DB9130A2E       &lt;NA&gt;
+## 98  C2E61BB7-426B-448F-8A9C-66B993E7201A Q128041901
+## 99  45244E56-4B89-501D-A33B-111D391F48AA       &lt;NA&gt;
+## 100 C391D10C-E9D9-5E75-BA23-0A35A3B00E55       &lt;NA&gt;
+## 101 2F35B923-3E53-5BA6-BF91-1CBA1DA040DF       &lt;NA&gt;
+## 102 03B75553-E358-DA5B-FF2D-CE9543D2FE2F       &lt;NA&gt;
+## 103 8BF67904-A757-4AC7-BF2D-C3A0C6F40A69 Q126327712
+## 104 D55287B7-E47B-D877-FF7F-FA30FDD1FA94 Q125857690
+## 105 751700B5-FD08-40C3-947E-B2B08DD97128       &lt;NA&gt;
+## 106 18334E5C-BED9-47AE-A42D-FA916E7B2CC2 Q128613615
+## 107 68414648-693B-5572-888A-CBE0A3685841       &lt;NA&gt;
+## 108 51128E69-0B84-58EA-87D5-1AF16401264F Q131825353
+## 109 D51EC9FE-C269-4189-9815-AB65D3FBE0B6 Q124836693
+## 110 40D39285-4EF1-4344-B62B-FE91BC37D75E       &lt;NA&gt;
+## 111 CAB92047-39DC-47FB-8EBC-B1042D2487FC Q125700469
+## 112 D55287B7-E473-D872-FF7F-F999FDD1FDCB Q125939837
+## 113 9939FB18-1A60-5780-B821-1FC76B01C776       &lt;NA&gt;
+## 114 038787F8-FFC3-D402-C99E-FF2CFC30FB9F       &lt;NA&gt;
+## 115 BA75B4CD-0B3E-4EC6-AD2A-CB8556244BA7       &lt;NA&gt;
+## 116 4E4C8782-C26A-F211-FF40-FA23FB9FFE0F Q128041957
+## 117 039D1B29-FFA3-FFB1-FF57-8F38F79EFBEF Q125696541
+## 118 3392CAEB-0277-419E-ADAE-F03B1B1D697A Q125201018
+## 119 D966232C-003D-FF98-A6F7-7758FE6EFA61 Q127427383
+## 120 833F87A3-4308-FFFA-FF43-FF79FEE3FB61       &lt;NA&gt;
+## 121 03C487BA-FB4C-CD20-FF5D-FE11B50C3C60       &lt;NA&gt;
+## 122 03B1B94C-A776-603C-FF02-2003FC26F872 Q131739745
+## 123 03D3A756-FFC8-4F5A-58CA-9E0DB0BF43EF       &lt;NA&gt;
+## 124 41D455A5-216C-50D0-931D-AAAD1607ABA8 Q130644056
+## 125 AB25878A-5868-7527-06A3-14157E89514F Q125261951
+## 126 03AB87B8-FF9E-FFC6-FF66-FAB5FBBBD99E       &lt;NA&gt;
+## 127 033A295A-B327-498B-AC05-0519F1560FE7 Q126075196
+## 128 039887DD-034A-FFDF-78C2-4EF7ABEFC629 Q127162869
+## 129 03A90D54-6544-216E-FF6A-FF5EFD4DFF46 Q125526237
+## 130 F2317335-BBE0-4CBF-8A42-3363832F8965       &lt;NA&gt;
+## 131 D35634D7-9179-53E2-9BC4-0083BB156CA4 Q126362961
+## 132 91C5558F-607B-5F62-9E5C-D8719E55B6AB       &lt;NA&gt;
+## 133 E9EF3E14-9D66-5F44-9DB1-97F605F8CF2D Q127926256
+## 134 F5BF874C-50B4-4703-9C76-45BCE3EB2F61 Q131853124
+## 135 458CECC2-8C71-4390-8FD5-B4F1F6F42317 Q127328156
+## 136 3BEBA66A-A6EC-5F29-9C22-0F61A60AB3A0       &lt;NA&gt;
+## 137 03D887FD-FFDC-6D7D-FF18-0F58FE64CBCC Q131940763
+## 138 9DAA5D35-8EC4-441F-8180-0A063BFBD30F Q128839494
+## 139 7B5C87D5-4F7C-FF82-5FB4-925FE285F9F3 Q131986719
+## 140 BEBF5415-BCDF-4CD2-8BD3-A89F20CB7067 Q125622905
+## 141 6E688161-FFDD-FFC0-51B8-DEF510B0FCEE Q131421881
+## 142 09EA6CAD-919C-4BB7-BFCB-8A2171AD4620 Q125700374
+## 143 9B59ED1E-FFB0-FFAA-FF6A-FF32FF15A073       &lt;NA&gt;
+## 144 038E8784-FFAC-FFE7-FF40-88D73460D131 Q127165362
+## 145 D4CE3F8B-2A64-4249-B175-C46DB540ABC5 Q126690198
+## 146 AA0B8C41-C566-4FBF-AC29-6C7AD4128E60       &lt;NA&gt;
+## 147 DD7CAE7D-6A6F-FF8D-CCED-DD5F9C6BF8AA       &lt;NA&gt;
+## 148 C88C6AFA-9889-4E3E-A2CD-816FDA5481FD Q124616379
+## 149 AF62080E-7DF4-43AE-BF0C-D83C0440E8AA Q125696657
+## 150 F84587F0-FFFA-FFF5-30CB-FD53F136F855       &lt;NA&gt;
+## 151 C76F88A6-3CCB-4F7E-94B1-18B3EA444F72 Q125565384
+## 152 3AC56A6A-DBAE-4F49-9B8C-D425E38E0B79       &lt;NA&gt;
+## 153 879135E3-C951-4A67-9FF8-4233D198E34B Q124657666
+## 154 D4DF3CA6-B887-4B3C-92A1-D1286F35DAA2       &lt;NA&gt;
+## 155 C4C0B4D7-20BF-4566-959B-C015940AF4E6 Q130722975
+## 156 BE2B8786-FFDB-FFC7-DD07-9EEFFC44EB09       &lt;NA&gt;
+## 157 B404F4AC-CEF5-4225-9595-4CD47313E204 Q127328158
+## 158 5C640413-8B2F-417F-AD1C-A867AFE5A7B5 Q125200332
+## 159 D2BBB96C-688A-485E-9F0F-1C37D8D3B9A9       &lt;NA&gt;
+## 160 8FF8C587-E536-44E9-BD1F-9D4995FE3E1F Q124846089
+## 161 03B8397D-2D7A-FFB7-44E9-FC9EDA97463A       &lt;NA&gt;
+## 162 AD0BD28D-EBA7-4EB9-B14B-1FEEF34CD2FD Q125774163
+## 163 03B187B6-CE4E-F321-FA83-F4017117B4D1       &lt;NA&gt;
+## 164 4EAFC175-AE18-4A92-B9E5-DA1CAB1D607F Q130635669
+## 165 C06087FD-F15D-FFC6-FC22-FA2CFE11F959       &lt;NA&gt;
+## 166 DFF608FB-743F-49F5-AEED-2738B7CEF2EC       &lt;NA&gt;
+## 167 81114138-FFAB-FFD0-7D9F-FA15C099FCCF Q124821279
+## 168 03B2B845-E850-FFFE-FF3D-425C507C1393 Q131868447
+## 169 03DB8794-3B48-037D-419A-44C726243339 Q131784050
+## 170 301EB524-FFC1-250F-FF6F-BE7FFEBEFEC8       &lt;NA&gt;
+## 171 AD646F86-77CA-43F0-8F5F-4046057ED127       &lt;NA&gt;
+## 172 03A087C3-D14F-FFD5-E0B4-FAAEFDBFF910       &lt;NA&gt;
+## 173 34465D91-1AB2-4241-9A5E-63A149997A98       &lt;NA&gt;
+## 174 D5CE0234-A11D-47EE-AE9D-DB41A04A2F98       &lt;NA&gt;
+## 175 03E987EB-FF0F-FFFB-FEBE-FCAEFB2FFD52 Q130303034
+## 176 03A487BE-3278-227D-FF5C-FA210F12672A       &lt;NA&gt;
+## 177 0F13E56C-CDA3-4514-95CC-09F621D1DBA8 Q130299312
+## 178 E75C87E8-FFCF-6769-FF2A-FA4969B037EC       &lt;NA&gt;
+## 179 03CDA902-FF84-FFB7-778C-FA6DB760F83D Q125623427
+## 180 3DD80080-00E2-4BE3-B2A8-DB813B690CE2       &lt;NA&gt;
+## 181 EAA1BF45-028A-4079-A33C-B5CA8FC5777F       &lt;NA&gt;
+## 182 03A3730A-8524-FFBA-FE62-CEFDFB6F3F69       &lt;NA&gt;
+## 183 039E045B-4960-521C-FF0F-4DF14D75BD83       &lt;NA&gt;
+## 184 DF59DE4D-FFD2-F145-FF30-314F2322FEDD Q125948810
+## 185 4B192F63-FFE0-9C5D-33F2-FDE0FE95FEAF       &lt;NA&gt;
+## 186 F576A0E9-D89B-4096-AF6F-10D18F58167D       &lt;NA&gt;
+## 187 F1237A1F-7A08-3858-F1CD-BB6FFE2C1A1D       &lt;NA&gt;
+## 188 38A02A43-458B-4B41-907B-67A0D2C71B71       &lt;NA&gt;
+## 189 FFA65EA6-8DD4-407B-ABFC-610E8C399574 Q127425541
+## 190 EFD572B1-A215-49FF-9C42-76DA2561E4D9       &lt;NA&gt;
+## 191 03ADE55D-FFA8-B906-FF69-FE8EFE63878E Q131209177
+## 192 ABC23F36-12F3-5DF3-807B-D6B53089A17E Q127038579
+## 193 03B18252-FFFB-FFA8-46FA-FD0CFBC9D0C0 Q125014430
+## 194 03F3204B-FF91-8201-55CD-B21C612DFA7B Q129264110
+## 195 8E2C87F1-FFCC-ED1A-C9F0-30E5FAE57690       &lt;NA&gt;
+## 196 0386C114-1640-FFFF-FC45-F8AF3C2EEEE4 Q130614191
+## 197 068CD744-43A6-407A-9876-71B249D66C72       &lt;NA&gt;
+## 198 0386C114-1644-FFE5-FF67-FBFF3F97EFAD Q130604488
+## 199 5BFD358A-B843-413A-B4AB-931536B89F97 Q124867193
+## 200 D34B3691-CAE8-4FB4-9492-05EFDF71FCD3       &lt;NA&gt;
+## 201 B0360E71-FF88-B771-45DE-FF2BFEABFE09       &lt;NA&gt;
+## 202 13253B07-3074-51BD-93B8-51361F369CDE       &lt;NA&gt;
+## 203 386ABE42-FFB3-FFA7-FF06-AFB32CE0FC9C       &lt;NA&gt;
+## 204 661F1795-811C-4B6B-8535-1E33032B6D12 Q125964476
+## 205 5C2687C0-FFB6-FFA4-FF0D-FF283F8AFB62       &lt;NA&gt;
+## 206 1B993E87-00A2-4E04-9FEF-A4AE9D968360       &lt;NA&gt;
+## 207 F14FC17A-FFE0-396C-FE74-FE933CC1FE5E       &lt;NA&gt;
+## 208 18825AE8-013D-42A0-9A18-30994FDAF0FA       &lt;NA&gt;
+## 209 75271B99-356E-4CCA-BAB0-B6419AF94AB3       &lt;NA&gt;
+## 210 50B54A9D-F018-56E5-956A-358C9A0EC9E2 Q131555009
+## 211 EEF6E028-0E05-5326-8C07-92A5E5D130FC Q127328145
+## 212 03C4DE50-0B1F-FFF0-B993-E003FABBBC5F       &lt;NA&gt;
+## 213 CB2E87DA-3463-4512-59B7-EBAAFB08F8D8       &lt;NA&gt;
+## 214 03BF244D-9543-FFB8-33D7-2193FE85F892       &lt;NA&gt;
+## 215 34AAD11B-3CA4-44FA-8E21-A13047FC01BC Q124672151
+## 216 D1682045-34E5-458B-936D-B91434FEEADE Q125342698
+## 217 7B1E4EBC-59D7-5778-BF25-0C5434A843ED       &lt;NA&gt;
+## 218 37DE18D9-FD02-4DD3-9176-BD1A3655955B Q125688399
+## 219 22E2BD02-9672-434B-B4DF-43AD636677B7 Q130261749
+## 220 965F36E8-E123-496F-A43D-9C2D1B80294F       &lt;NA&gt;
+## 221 8CB99CD2-A029-4FD4-928C-82AD853F9A04 Q131316750
+## 222 94F06885-F7AA-4D64-8664-505A151E06DC Q126877391
+## 223 AF38FFC5-F4E0-48CE-A897-8C350982625F Q125200967
+## 224 31BB3D43-22A7-44C1-AF02-68DF9BC0A564       &lt;NA&gt;
+## 225 895087C7-4038-FFB0-F7D8-F8F43A835709       &lt;NA&gt;
+## 226 03FE4B3B-7B4B-FF89-FF03-5247FEED7DF5       &lt;NA&gt;
+## 227 03F287C7-FFC9-FFE6-0EB9-27FBFD67FA0F Q125852037
+## 228 9A67AE1B-A1A0-55B2-8B6B-EA350C541DA5       &lt;NA&gt;
+## 229 0D0487C4-FFCD-FFA3-FF2F-4F6EFDFAE7CA Q131986715
+## 230 BE72A92E-E498-4C84-9BC1-8EF0EDB44905 Q125342709
+## 231 C87E87EB-3D2C-FF84-FC3A-FB5EFDEBBEB9 Q125149187
+## 232 70D34F82-2195-4F29-89F2-24C53848CF95       &lt;NA&gt;
+## 233 045987DE-1549-7540-2BAA-F899FE028048       &lt;NA&gt;
+## 234 C83887DD-FFBD-8748-E5C3-8DCBFD27938E       &lt;NA&gt;
+## 235 CF2C87DC-FFFD-0633-FF77-5AC2CF52FB52       &lt;NA&gt;
+## 236 F19C3493-FA00-4F4A-A9B1-4A39B5C5FF0A Q124837018
+## 237 9FF3B31F-E75A-414C-9986-E5D367878D43 Q126362949
+## 238 A57C501C-8E3E-4D0B-B47A-8FF1C8DBF1DA Q125054405
+## 239 F36CCF2F-3F7A-44C1-8C3C-DBD056E9C24F       &lt;NA&gt;
+## 240 E3178CAC-9400-549E-A75F-0DE102E892AF Q131825296
+## 241 03FD87EF-FF85-FF96-FF48-F7FFFECF943B       &lt;NA&gt;
+## 242 B87BD23E-E803-FFA0-FF55-EF7FFDCB881B       &lt;NA&gt;
+## 243 689317C8-D1E4-4526-81CC-E89B9C11E42B Q125700421
+## 244 0C2FCC48-DAC5-5A85-930E-B22B42429B23       &lt;NA&gt;
+## 245 073987D5-FFB8-3752-FF3C-FCD3FD0CFC56 Q125201002
+## 246 3A9B2F5F-5662-5965-ACE8-6975551502D1 Q127328164
+## 247 5593ADD1-63B3-4F39-BB5B-02D400B71D5C Q126965426
+## 248 87BC677B-61D6-4CEF-AE98-034DDCF4B330       &lt;NA&gt;
+## 249 CB3887FB-7173-620A-FB48-F995FC1CFAC4 Q131765964
+## 250 B03559F4-9C45-4991-8A74-5C346FCD6C37 Q125815748
+## 251 2F1F87B4-0818-FFA9-0AE0-FF0C064243CA Q124610631
+## 252 B58E6FB7-E25B-433F-8CBA-4E76405F371B Q125019553
+## 253 EFBD9EA8-897A-46F4-91AD-12E03C26E7F5 Q127328151
+## 254 03FEBE76-FF8E-F236-00BA-4A9BFEBF0B61 Q131362625
+## 255 B6350DEA-E691-45AC-A1EF-C8BC73327045 Q130796216
+## 256 09A5260E-31A1-5CBA-A44D-DF3A92883500 Q131466982
+## 257 B22B87C1-CF16-3859-76D8-3F99FE12FF09 Q124837785
+## 258 32D5F308-98C3-465F-85FE-C96DC1237A87 Q131765994
+## 259 675F87D6-1718-FFBC-60BF-5F4B5F1AFB82 Q131316701
+## 260 03AA411D-7254-3C22-FF59-DFDBFE67F855       &lt;NA&gt;
+## 261 976F0F09-FFD7-FFD1-FF11-FB26FAFD3D51 Q125699926
+## 262 867887EB-FFB2-FFB4-FF13-FF4FF0C4FEBC Q128802274
+## 263 03B3393F-FFA6-FFB6-62B5-979AFD25DCB2       &lt;NA&gt;
+## 264 F7D6888B-7B24-4261-8BB1-E832CBFC0D19       &lt;NA&gt;</code></pre>
+<p>Dans la colonne QID_items, nous avons tantôt un identifiant unique
+d’élément de Wikidata (QID), tantôt nous n’avons rien. Lorsque
+l’identifiant a été récupéré, c’est donc parce qu’un élément existe déjà
+qu’il conviendra d’enrichir avec de nouvelles propriétés Lorsque
+l’identifiant n’existe pas, c’est qu’il n’a pas encore été créé, il
+faudra le créer avec ses propriétés.</p>
+<p>Maintenant que cette nouvelle colonne QID_items est créée, avec les
+identifiants de Wikidata quand les éléments sont déjà créés, vide (NA
+lorsque ces éléments n’ont pas encore été créés), on va pouvoir scinder
+ce tableau en deux : dans le premier (df2), les items qui n’ont pas
+encore été créés sur Wikidata, dans le second (df3) les items qui ont
+déjà été créés. Créons déjà df2 :</p>
 <pre class="r"><code>#df2 : items à créer dans Wikdata
 df2  &lt;- df1[is.na(df1$QID_items),] # filter(df1 ==&quot;NA&quot;) won&#39;t do it (see here https://stackoverflow.com/questions/7980622/subset-of-rows-containing-na-missing-values-in-a-chosen-column-of-a-data-frame#7980765)
 head(df2, 10)</code></pre>
-<pre><code>##                species_name    qid country_of_discovery                        doi                                plazi QID_items
-## 24  Xangoniscus chaimowiczi   Q155               Brazil 10.3897/subtbiol.50.139914 B38058FA-49CF-576C-B81C-44DA7969887F      &lt;NA&gt;
-## 30        Charidotis rochai   Q155               Brazil  10.11646/zootaxa.5477.5.6 230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E      &lt;NA&gt;
-## 31         Neoconger hygomi   Q155               Brazil  10.11646/zootaxa.5492.1.6 246A879B-FFDB-FFCC-FF42-FB8B7C1046EA      &lt;NA&gt;
-## 32     Cerithiopsis pisinna   Q155               Brazil  10.11646/zootaxa.5494.1.1 EF009476-3B45-4D35-9B1B-7D4E3E516811      &lt;NA&gt;
-## 33     Anapolisia amazonica   Q155               Brazil  10.11646/zootaxa.5564.1.1 03905517-C727-F528-39A9-FE31FAD4F809      &lt;NA&gt;
-## 36       Mesopolobus askewi   Q219             Bulgaria     10.3897/BDJ.12.e139403 B4F99402-5129-5CF8-810C-2CC35FF57A2F      &lt;NA&gt;
-## 39     Digentia viridissima  Q1009             Cameroon      10.3897/jor.34.126949 51342DEF-CAC8-5780-8B4F-2CDA429EE929      &lt;NA&gt;
-## 41   Perilampus neodiprioni    Q16               Canada      10.3897/jhr.97.133255 51043FC0-89D1-519D-B170-B91312C22CFA      &lt;NA&gt;
-## 43  Pristerophora rothmanni   Q298                Chile  10.11646/zootaxa.5433.4.8 03DDC049-FF8C-FF84-FF1B-FA81FEB8795A      &lt;NA&gt;
-## 44 Sinaxonopsis hainanensis Q29520                China          10.24349/orqe-mqh 03E28502-3822-395E-FE59-FA10FCBAFE16      &lt;NA&gt;</code></pre>
-</div>
-<div id="création-dun-tableau-à-partir-des-données-relatives-aux-éléments-à-créer" class="section level1">
-<h1>création d’un tableau à partir des données relatives aux éléments à
-créer</h1>
+<pre><code>##                species_name                    taxon    qid
+## 24  Xangoniscus chaimowiczi  Xangoniscus chaimowiczi   Q155
+## 30        Charidotis rochai        Charidotis rochai   Q155
+## 31         Neoconger hygomi         Neoconger hygomi   Q155
+## 32     Cerithiopsis pisinna     Cerithiopsis pisinna   Q155
+## 33     Anapolisia amazonica     Anapolisia amazonica   Q155
+## 36       Mesopolobus askewi       Mesopolobus askewi   Q219
+## 39     Digentia viridissima     Digentia viridissima  Q1009
+## 41   Perilampus neodiprioni   Perilampus neodiprioni    Q16
+## 43  Pristerophora rothmanni  Pristerophora rothmanni   Q298
+## 44 Sinaxonopsis hainanensis Sinaxonopsis hainanensis Q29520
+##    country_of_discovery                        doi
+## 24               Brazil 10.3897/subtbiol.50.139914
+## 30               Brazil  10.11646/zootaxa.5477.5.6
+## 31               Brazil  10.11646/zootaxa.5492.1.6
+## 32               Brazil  10.11646/zootaxa.5494.1.1
+## 33               Brazil  10.11646/zootaxa.5564.1.1
+## 36             Bulgaria     10.3897/BDJ.12.e139403
+## 39             Cameroon      10.3897/jor.34.126949
+## 41               Canada      10.3897/jhr.97.133255
+## 43                Chile  10.11646/zootaxa.5433.4.8
+## 44                China          10.24349/orqe-mqh
+##                                   plazi QID_items
+## 24 B38058FA-49CF-576C-B81C-44DA7969887F      &lt;NA&gt;
+## 30 230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E      &lt;NA&gt;
+## 31 246A879B-FFDB-FFCC-FF42-FB8B7C1046EA      &lt;NA&gt;
+## 32 EF009476-3B45-4D35-9B1B-7D4E3E516811      &lt;NA&gt;
+## 33 03905517-C727-F528-39A9-FE31FAD4F809      &lt;NA&gt;
+## 36 B4F99402-5129-5CF8-810C-2CC35FF57A2F      &lt;NA&gt;
+## 39 51342DEF-CAC8-5780-8B4F-2CDA429EE929      &lt;NA&gt;
+## 41 51043FC0-89D1-519D-B170-B91312C22CFA      &lt;NA&gt;
+## 43 03DDC049-FF8C-FF84-FF1B-FA81FEB8795A      &lt;NA&gt;
+## 44 03E28502-3822-395E-FE59-FA10FCBAFE16      &lt;NA&gt;</code></pre>
+<div id="constitution-dun-tableau-déléments-à-créer" class="section level2">
+<h2>3.4 Constitution d’un tableau d’éléments à créer</h2>
+<p>Il est nécessaire à ce stade d’expliquer comment procéder l’envoi
+d’informations vers la wikibase au moyen du package WikidataR. La
+fonction dont nous allons nous servir est <a href="https://www.rdocumentation.org/packages/WikidataR/versions/2.3.3/topics/write_wikidata">write_wikidata()</a>.
+La syntaxe de base est la suivante :</p>
+<pre class="txt"><code>
+write_wikidata(
+  items,                 # items = les identifiants Qids des éléments à modifier (cela suppose qu&#39;ils ont déjà été créés)
+  properties = NULL,
+  values = NULL,
+  qual.properties = NULL,
+  qual.values = NULL,
+  src.properties = NULL,
+  src.values = NULL,
+  remove = FALSE,
+  format = &quot;tibble&quot;,
+  api.username = NULL,
+  api.token = NULL,
+  api.format = &quot;v1&quot;,
+  api.batchname = NULL,
+  api.submit = TRUE
+)
+</code></pre>
+<p>Supposons que nous disposiions d’un dataframe comportant dans une
+colonne item les identifiants des articles Wikidata de toutes les
+batailles qui ont eu lieu dans le Péloponnèse et dans le même dataframe
+une colonne value qui porte la date de chacune de ces batailles. Dans ce
+cas, la</p>
+<pre class="txt"><code>
+item &lt;- c(dataframe$item)  # liste des éléments relatifs aux batailles du Péloponnèse, par exemple  la bataille d&#39;Aegos Potamos (Q866862) 
+property &lt;- &quot;P585&quot;     # Date de l&#39;événement
+value &lt;- c(dataframe$date_iso)  # date en format ISO
+
+library(WikidataR)
+write_wikidata(items = item,
+               properties = &quot;P585&quot;,
+               values = value,
+               format = &quot;api&quot;,
+               api.username = &quot;identifiant_utilisateur&quot;, 
+               api.token = &quot;mettre ici votre token&quot;)
+</code></pre>
+<p>Dans ce cas, les items sont pluriels (de même que les dates bien
+sûr), mais la propriété est unique. Lorsque nous voulons faire des
+enrichissements sur plusieurs propriétés, il est plus commode de faire
+des ces propriétés elles-mêmes un vecteur. C’est ce que nous faisons
+dans le <em>chunck</em> suivant.</p>
+<p>La première ligne constitue un tableau extrait de df2. Ce tableau ne
+comporte que les trois premiers enregistrements de df2. En effet, pour
+plus de clarté, et dans l’optique de refaire cet exercice plusieurs
+fois, nous ne voulons pas traiter l’ensemble des items disponibles mais
+seulement une partie d’entre eux. C’est aussi un principe de précaution
+que nous appliquons. Il s’agit de créer des items qui n’existent pas
+encore dans Wikidata ; n’importe quel utilisateurice peut ajouter ou
+supprimer des <em>statements</em> à un ou plusieurs éléments de
+Wikidata. Mais supprimer des éléments nécessite un compte
+d’administrateurice. Il n’y a pas de retour en arrière possible pour le
+commun des mortels en cas d’erreur (même si les conséquences des erreurs
+sont limitées). Donc autant être prudent et procéder avec un échantillon
+de trois items, pour vérifier que tout fonctionne et bien comprendre
+comment cela fonctionne.</p>
+<p>Les étapes qui suivent procèdent à la mise en forme de cette
+information pour qu’elle soit exploitable par la forge de Wikidata,
+c’est à dire pour qu’elles soient véritablement envoyées vers la base de
+Wikidata. Pour ce faire, nous suivons la méthode adoptée par Katharina
+Brunner.</p>
+<p>Elle consiste en deux temps à : renommer les colonnes pour qu’elles
+correspondent à des propriétés enregistrées dans Wikidata :</p>
+<table>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">colonne du tableau</th>
+<th align="left">propriété</th>
+<th align="left">commentaire</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">CREATE_ (suivi d’un numéro unique)</td>
+<td align="left">item</td>
+<td align="left">quand l’élément n’existe pas, l’item doit être créé
+avec la commande CREATE suivi d’un identifiant unique dans la liste des
+éléments à traiter</td>
+</tr>
+<tr class="even">
+<td align="left">species_name</td>
+<td align="left">Len</td>
+<td align="left">label (=titre de l’élément en anglais)</td>
+</tr>
+<tr class="odd">
+<td align="left">qid</td>
+<td align="left">P189</td>
+<td align="left">qid est l’identifiant récupéré de Wikidata
+correspondant au pays de découverte tel qu’indiqué dans Mastodon)</td>
+</tr>
+<tr class="even">
+<td align="left">taxon</td>
+<td align="left">P225</td>
+<td align="left">le taxon est l’équivalent du nom de l’espèce récupéré
+sur Mastodon</td>
+</tr>
+<tr class="odd">
+<td align="left">doi</td>
+<td align="left">P356</td>
+<td align="left">le doi est celui de la publication à laquelle il est
+fait référence pour chaque découverte sur Mastodon</td>
+</tr>
+<tr class="even">
+<td align="left">plazi</td>
+<td align="left">P1992</td>
+<td align="left">il s’agit du matricule de traitement de l’espèce dans
+la banque de Plazi</td>
+</tr>
+</tbody>
+</table>
 <pre class="r"><code>df2_sub &lt;- slice_head(df2, n = 3, by = NULL)
 df2_sub &lt;- df2_sub %&gt;% 
   mutate(
     row_num = row_number(), # crée une colonne comportant le numéro de chaque item
     item = paste0(&quot;CREATE_&quot;,row_num), # crée une colonne item comportant le suffixe CREATE_ suivi du numéro de la colonne
     Len = paste0(df2_sub$species_name), # Crée la colonne Len (pour Langue anglaise) qui va servir à faire le label de l&#39;élément Wikidata
+    P225 = paste0(df2_sub$taxon),
     P189 = paste0(df2_sub$qid),
     P356 = paste0(df2_sub$doi),
     P1992 = paste0(df2_sub$plazi)
   )
-df2_sub &lt;- select(df2_sub, item, species_name, Len, P189, P356, P1992) # sélectionne les colonnes à conserver
+df2_sub &lt;- select(df2_sub, item, species_name, Len, P225, P189, P356, P1992) # sélectionne les colonnes à conserver
 print(df2_sub)</code></pre>
-<pre><code>##       item            species_name                     Len P189                       P356                                P1992
-## 1 CREATE_1 Xangoniscus chaimowiczi Xangoniscus chaimowiczi Q155 10.3897/subtbiol.50.139914 B38058FA-49CF-576C-B81C-44DA7969887F
-## 2 CREATE_2       Charidotis rochai       Charidotis rochai Q155  10.11646/zootaxa.5477.5.6 230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E
-## 3 CREATE_3        Neoconger hygomi        Neoconger hygomi Q155  10.11646/zootaxa.5492.1.6 246A879B-FFDB-FFCC-FF42-FB8B7C1046EA</code></pre>
+<pre><code>##       item            species_name                     Len
+## 1 CREATE_1 Xangoniscus chaimowiczi Xangoniscus chaimowiczi
+## 2 CREATE_2       Charidotis rochai       Charidotis rochai
+## 3 CREATE_3        Neoconger hygomi        Neoconger hygomi
+##                      P225 P189                       P356
+## 1 Xangoniscus chaimowiczi Q155 10.3897/subtbiol.50.139914
+## 2       Charidotis rochai Q155  10.11646/zootaxa.5477.5.6
+## 3        Neoconger hygomi Q155  10.11646/zootaxa.5492.1.6
+##                                  P1992
+## 1 B38058FA-49CF-576C-B81C-44DA7969887F
+## 2 230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E
+## 3 246A879B-FFDB-FFCC-FF42-FB8B7C1046EA</code></pre>
+<p>Ici il y a une subtilité à laquelle nous contraint le format d’import
+de Wikidata :</p>
+<p>Tandis que nos candidats à l’envoi se présentent avec toutes leurs
+propriétés sur une seule ligne et autant de colonnes qu’il y a de
+propriétés, La forge de Wikidata dipose l’information de façon verticale
+:</p>
+<p><strong>Dans R :</strong></p>
+<table>
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">liste des éléments</th>
+<th align="left">liste des items</th>
+<th align="left">propriété 1</th>
+<th align="left">propriété 2</th>
+<th align="left">propriété 3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">élément 1</td>
+<td align="left">item</td>
+<td align="left">propriété 1</td>
+<td align="left">propriété 2</td>
+<td align="left">propriété 3</td>
+</tr>
+<tr class="even">
+<td align="left">élément 2</td>
+<td align="left">item</td>
+<td align="left">propriété 1</td>
+<td align="left">propriété 2</td>
+<td align="left">propriété 3</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Dans la forge</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">élément</th>
+<th align="left">propriété</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">élémént 1</td>
+<td align="left">item</td>
+</tr>
+<tr class="even">
+<td align="left">élément 1</td>
+<td align="left">propriété 1</td>
+</tr>
+<tr class="odd">
+<td align="left">élément 1</td>
+<td align="left">propriété 2</td>
+</tr>
+<tr class="even">
+<td align="left">élément 1</td>
+<td align="left">propriété 3</td>
+</tr>
+<tr class="odd">
+<td align="left">élémént 2</td>
+<td align="left">item</td>
+</tr>
+<tr class="even">
+<td align="left">élément 2</td>
+<td align="left">propriété 1</td>
+</tr>
+<tr class="odd">
+<td align="left">élément 2</td>
+<td align="left">propriété 2</td>
+</tr>
+<tr class="even">
+<td align="left">élément 2</td>
+<td align="left">propriété 3</td>
+</tr>
+</tbody>
+</table>
+<p>Pour faire pivoter le tableau que nous avons obtenu et le formater de
+façon verticale, nous allons utiliser la fonction <em>pivot_longer</em>
+du package <em>tidyr</em> (encore un package à charger en cours de
+route)</p>
 <pre class="r"><code>library(tidyr)
 library(stringr)
 
@@ -1092,21 +2402,24 @@ import &lt;- df2_sub %&gt;%
   distinct()
 
 print(import)</code></pre>
-<pre><code>## # A tibble: 12 × 3
+<pre><code>## # A tibble: 15 × 3
 ##    item     property value                               
 ##    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;                               
 ##  1 CREATE_1 Len      Xangoniscus chaimowiczi             
-##  2 CREATE_1 P189     Q155                                
-##  3 CREATE_1 P356     10.3897/subtbiol.50.139914          
-##  4 CREATE_1 P1992    B38058FA-49CF-576C-B81C-44DA7969887F
-##  5 CREATE_2 Len      Charidotis rochai                   
-##  6 CREATE_2 P189     Q155                                
-##  7 CREATE_2 P356     10.11646/zootaxa.5477.5.6           
-##  8 CREATE_2 P1992    230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E
-##  9 CREATE_3 Len      Neoconger hygomi                    
-## 10 CREATE_3 P189     Q155                                
-## 11 CREATE_3 P356     10.11646/zootaxa.5492.1.6           
-## 12 CREATE_3 P1992    246A879B-FFDB-FFCC-FF42-FB8B7C1046EA</code></pre>
+##  2 CREATE_1 P225     Xangoniscus chaimowiczi             
+##  3 CREATE_1 P189     Q155                                
+##  4 CREATE_1 P356     10.3897/subtbiol.50.139914          
+##  5 CREATE_1 P1992    B38058FA-49CF-576C-B81C-44DA7969887F
+##  6 CREATE_2 Len      Charidotis rochai                   
+##  7 CREATE_2 P225     Charidotis rochai                   
+##  8 CREATE_2 P189     Q155                                
+##  9 CREATE_2 P356     10.11646/zootaxa.5477.5.6           
+## 10 CREATE_2 P1992    230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E
+## 11 CREATE_3 Len      Neoconger hygomi                    
+## 12 CREATE_3 P225     Neoconger hygomi                    
+## 13 CREATE_3 P189     Q155                                
+## 14 CREATE_3 P356     10.11646/zootaxa.5492.1.6           
+## 15 CREATE_3 P1992    246A879B-FFDB-FFCC-FF42-FB8B7C1046EA</code></pre>
 <pre class="r"><code>library(WikidataR)
 write_wikidata(
   items        = import$item,
@@ -1118,20 +2431,519 @@ write_wikidata(
   )
 
 #results ici : https://quickstatements.toolforge.org/#/batch/243495</code></pre>
+</div>
+<div id="traitement-des-éléments-qui-sont-déjà-présents-dans-wikidata" class="section level2">
+<h2>traitement des éléments qui sont déjà présents dans Wikidata</h2>
+<p>df1 comporte des éléments déjà présents dans Wikidata et d’autres qui
+n’y sont pas. Le script qui suit récupère les lignes où la valeur
+QID_items n’est pas nulle, mais est la valeur récupérée de Wikidata à
+l’étape précédente. le dataframe 3 (df3) recensera désormais uniquement
+les éléments qui sont déjà présents dans Wikidata.</p>
 <pre class="r"><code>#df3 : items déjà créésdans Wikdata
 df3  &lt;- df1[!is.na(df1$QID_items),] # filter(df1 ==&quot;NA&quot;) won&#39;t do it (see here https://stackoverflow.com/questions/7980622/subset-of-rows-containing-na-missing-values-in-a-chosen-column-of-a-data-frame#7980765)
-head(df3, 10)</code></pre>
-<pre><code>##                   species_name  qid country_of_discovery                              doi                                plazi  QID_items
-## 1              Panaspis ericae Q916               Angola        10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF Q127815097
-## 2        Minibiotus dispositus Q414            Argentina        10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE Q132163685
-## 3                 Ctenomys uco Q414            Argentina            10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443 Q124988842
-## 4  Xanthomelon amurndamilumila Q408            Australia           10.3897/zse.100.113243 37DE5E77-7A67-4069-98C2-9FEA941205C8 Q125696676
-## 5          Diplodactylus fyfei Q408            Australia            10.3897/vz.74.e128775 4E3F9A59-B628-507B-AA55-8B74BC462D31 Q130644039
-## 6          Liopholis purnululu Q408            Australia        10.11646/zootaxa.5551.2.4 EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB Q132079142
-## 7              Litoria sibilus Q408            Australia        10.11646/zootaxa.5406.1.1 03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA Q125024287
-## 8       Naisdoris labalsaensis Q408            Australia        10.11646/zootaxa.5443.4.3 03B587E3-FFDF-EE06-00F9-4B27FD01FE9F Q132166165
-## 9          Samadinia jimlowryi Q408            Australia 10.3853/j.2201-4349.75.2023.1876 03B8E56D-1702-7E68-0F60-B4835ED23916 Q132166166
-## 10     Heteroclinus longicauda Q408            Australia        10.11646/zootaxa.5432.3.1 933987E1-FFFC-FFFC-80A3-989AFC25A2E4 Q132166170</code></pre>
+print(df3)</code></pre>
+<pre><code>##                        species_name                           taxon    qid
+## 1                   Panaspis ericae                 Panaspis ericae   Q916
+## 2             Minibiotus dispositus           Minibiotus dispositus   Q414
+## 3                      Ctenomys uco                    Ctenomys uco   Q414
+## 4       Xanthomelon amurndamilumila     Xanthomelon amurndamilumila   Q408
+## 5               Diplodactylus fyfei             Diplodactylus fyfei   Q408
+## 6               Liopholis purnululu             Liopholis purnululu   Q408
+## 7                   Litoria sibilus                 Litoria sibilus   Q408
+## 8            Naisdoris labalsaensis          Naisdoris labalsaensis   Q408
+## 9               Samadinia jimlowryi             Samadinia jimlowryi   Q408
+## 10          Heteroclinus longicauda         Heteroclinus longicauda   Q408
+## 11                 Liopholis aputja                Liopholis aputja   Q408
+## 12        Trichothraupis griseonota       Trichothraupis griseonota   Q750
+## 13         Tropidurus madeiramamore        Tropidurus madeiramamore   Q155
+## 14            Brachycephalus dacnis           Brachycephalus dacnis   Q155
+## 15       Melanorivulus melanopterus      Melanorivulus melanopterus   Q155
+## 16        Pararrhopalites iataganii       Pararrhopalites iataganii   Q155
+## 17             Xangoniscus antiquus            Xangoniscus antiquus   Q155
+## 18                  Aegla urussanga                 Aegla urussanga   Q155
+## 19            Cosmioconcha costorum           Cosmioconcha costorum   Q155
+## 20            Philothalpus precious           Philothalpus precious   Q155
+## 21   Microsternarchus longicaudatus  Microsternarchus longicaudatus   Q155
+## 22               Priocharax conwayi              Priocharax conwayi   Q155
+## 23             Melanorivulus terena            Melanorivulus terena   Q155
+## 25               Hapalopus guidonae              Hapalopus guidonae   Q155
+## 26              Circoniscus mendesi             Circoniscus mendesi   Q155
+## 27             Mycena lamprocephala            Mycena lamprocephala   Q155
+## 28          Ctenorillo intertidalis         Ctenorillo intertidalis   Q155
+## 29            Amphisbaena amethysta           Amphisbaena amethysta   Q155
+## 34             Chironius dracomaris            Chironius dracomaris   Q155
+## 35             Loxosceles bodoquena            Loxosceles bodoquena   Q155
+## 37         Hemiphyllodactylus bokor        Hemiphyllodactylus bokor   Q424
+## 38                  Zanna limbourgi                 Zanna limbourgi   Q424
+## 40                 Alucita sokolovi                Alucita sokolovi  Q1009
+## 42              Aldrichiopa serrata             Aldrichiopa serrata   Q298
+## 45             Lucanus zhanbishengi            Lucanus zhanbishengi Q29520
+## 47            Tachysurus wuyueensis           Tachysurus wuyueensis Q29520
+## 50                Psellonus dawanqu               Psellonus dawanqu Q29520
+## 51               Buprestis gengmini              Buprestis gengmini Q29520
+## 59           Sinodromus fujianensis          Sinodromus fujianensis Q29520
+## 71                    Sora phyllopa                   Sora phyllopa Q29520
+## 73                    Amolops yangi                   Amolops yangi Q29520
+## 75    Tylototriton gaowangjienensis   Tylototriton gaowangjienensis Q29520
+## 76      Rhinogobius lithopolychroma     Rhinogobius lithopolychroma Q29520
+## 81                    Calotes wangi                   Calotes wangi Q29520
+## 83          Gekko paucituberculatus         Gekko paucituberculatus Q29520
+## 84             Rhacophorus qiongica            Rhacophorus qiongica Q29520
+## 85             Thelcticopis chongzu            Thelcticopis chongzu Q29520
+## 86      Pseudopoda qizimeishanensis     Pseudopoda qizimeishanensis Q29520
+## 90           Oreolalax yanyuanensis          Oreolalax yanyuanensis Q29520
+## 91         Sinocyclocheilus guiyang        Sinocyclocheilus guiyang Q29520
+## 96           Raorchestes hekouensis          Raorchestes hekouensis Q29520
+## 98         Xenophrys yingjiangensis        Xenophrys yingjiangensis Q29520
+## 103                Ovophis jenkinsi                Ovophis jenkinsi Q29520
+## 104                     Icius faker                     Icius faker Q29520
+## 106    Hypselotriton huanggangensis    Hypselotriton huanggangensis Q29520
+## 108                  Latouchia yaoi                  Latouchia yaoi Q29520
+## 109           Odorrana leishanensis           Odorrana leishanensis Q29520
+## 111            Rondotia melanoleuca            Rondotia melanoleuca Q29520
+## 112                       Icius kui                       Icius kui Q29520
+## 116             Tropidophorus vongx             Tropidophorus vongx Q29520
+## 117             Angusta fangtingyui             Angusta fangtingyui Q29520
+## 118               Rhinella kumanday               Rhinella kumanday   Q739
+## 119          Troglotayosicus akaido          Troglotayosicus akaido   Q739
+## 122              Muscuspina neblina              Muscuspina neblina   Q739
+## 124              Mabuya yasuniensis              Mabuya yasuniensis   Q736
+## 125             Iphisa brunopereira             Iphisa brunopereira   Q736
+## 127               Corades yanacocha               Corades yanacocha   Q736
+## 128             Hyloscirtus arcanus             Hyloscirtus arcanus   Q736
+## 129          Psalmopoeus pristirana          Psalmopoeus pristirana   Q736
+## 131       Pristimantis normaewingae       Pristimantis normaewingae   Q736
+## 133           Oroperipatus tiputini           Oroperipatus tiputini   Q736
+## 134              Thomasomys otavalo              Thomasomys otavalo   Q736
+## 135               Centrolene kutuku               Centrolene kutuku   Q736
+## 137               Boaedon broadleyi               Boaedon broadleyi   Q115
+## 138             Hoplitis onosmaevae             Hoplitis onosmaevae   Q142
+## 139                Liotyphlops pino                Liotyphlops pino   Q783
+## 140              Halirages spongiae              Halirages spongiae   Q189
+## 141                Ghatiana dvirupa                Ghatiana dvirupa   Q668
+## 142           Taeniogonalos deepaki           Taeniogonalos deepaki   Q668
+## 144           Nanosesarma gomantaka           Nanosesarma gomantaka   Q668
+## 145         Cnemaspis agamalaiensis         Cnemaspis agamalaiensis   Q668
+## 148         Sphaerotheca varshaabhu         Sphaerotheca varshaabhu   Q668
+## 149                Ariosoma kannani                Ariosoma kannani   Q668
+## 151               Cnemaspis sanctus               Cnemaspis sanctus   Q668
+## 153           Ditha shivanparaensis           Ditha shivanparaensis   Q668
+## 155             Tenkana jayamangali             Tenkana jayamangali   Q668
+## 157         Uropeltis caudomaculata         Uropeltis caudomaculata   Q668
+## 158      Cnemaspis sathuragiriensis      Cnemaspis sathuragiriensis   Q668
+## 160           Phintella rajbharathi           Phintella rajbharathi   Q668
+## 162 Stenaelurillus judithbleisterae Stenaelurillus judithbleisterae   Q668
+## 164                  Calotes sinyik                  Calotes sinyik   Q668
+## 167             Coccorchestes spark             Coccorchestes spark   Q252
+## 168             Doliops comvalensis             Doliops comvalensis   Q252
+## 169            Cherax pulverulentus            Cherax pulverulentus   Q252
+## 175      Acanthoniscus richardsonae      Acanthoniscus richardsonae   Q766
+## 177            Leipsuropus seisuiae            Leipsuropus seisuiae    Q17
+## 179       Nipponocalisius tomokunii       Nipponocalisius tomokunii    Q17
+## 184          Palaemon parvibrachium          Palaemon parvibrachium    Q17
+## 189            Rhinolophus cervenyi            Rhinolophus cervenyi  Q1013
+## 191        Paranthrenella tricincta        Paranthrenella tricincta   Q833
+## 192             Thamnophis ahumadai             Thamnophis ahumadai    Q96
+## 193             Thelephora pacifica             Thelephora pacifica    Q96
+## 194                 Ophioderma aija                 Ophioderma aija    Q96
+## 196                 Channa coccinea                 Channa coccinea   Q836
+## 198            Channa pyrophthalmus            Channa pyrophthalmus   Q836
+## 199                  Calotes iadina                  Calotes iadina   Q836
+## 204           Corynotopsis omanicus           Corynotopsis omanicus   Q842
+## 210                  Yirrkala nkust                  Yirrkala nkust   Q865
+## 211      Luciogobius opisthoproctus      Luciogobius opisthoproctus   Q865
+## 215     Attemsostreptus leptoptilos     Attemsostreptus leptoptilos   Q924
+## 216              Trimeresurus lanna              Trimeresurus lanna   Q869
+## 218          Oligodon speleoserpens          Oligodon speleoserpens   Q869
+## 219              Leiolepis glaurung              Leiolepis glaurung   Q869
+## 221           Tylototriton soimalai           Tylototriton soimalai   Q869
+## 222               Dicnecidia browni               Dicnecidia browni   Q869
+## 223           Trimeresurus kraensis           Trimeresurus kraensis   Q869
+## 227         Dixonius chotjuckdikuli         Dixonius chotjuckdikuli   Q869
+## 229              Siamaxytes bifurca              Siamaxytes bifurca   Q869
+## 230    Trimeresurus tenasserimensis    Trimeresurus tenasserimensis   Q869
+## 231                Chimaera supapae                Chimaera supapae   Q869
+## 236             Bungarus sagittatus             Bungarus sagittatus   Q869
+## 237         Rhampholeon monteslunae         Rhampholeon monteslunae  Q1036
+## 238               Sarinda contraluz               Sarinda contraluz    Q77
+## 240               Bathynomus vaderi               Bathynomus vaderi   Q881
+## 243     Goniopsarites mientrunganus     Goniopsarites mientrunganus   Q881
+## 245              Scincella ouboteri              Scincella ouboteri   Q881
+## 246          Poropuntius anlaoensis          Poropuntius anlaoensis   Q881
+## 247        Trimeresurus cyanolabris        Trimeresurus cyanolabris   Q881
+## 249          Pseudochoutagus lindae          Pseudochoutagus lindae   Q881
+## 250              Cyrtodactylus luci              Cyrtodactylus luci   Q881
+## 251                 Buprestis wenii                 Buprestis wenii   Q881
+## 252         Myrrophis dakkrongensis         Myrrophis dakkrongensis   Q881
+## 253            Hebius citrinoventer            Hebius citrinoventer   Q881
+## 254              Indochinamon datii              Indochinamon datii   Q881
+## 255             Typhlomys taxuansis             Typhlomys taxuansis   Q881
+## 256             Colubroelaps adleri             Colubroelaps adleri   Q881
+## 257               Dibamus deimontis               Dibamus deimontis   Q881
+## 258         Connelicita bachmaensis         Connelicita bachmaensis   Q881
+## 259              Oreolalax adelphos              Oreolalax adelphos   Q881
+## 261         Dedalopterus lexuanhuei         Dedalopterus lexuanhuei   Q881
+## 262   Hemiphyllodactylus vanhoensis   Hemiphyllodactylus vanhoensis   Q881
+##     country_of_discovery                                 doi
+## 1                 Angola           10.3897/evolsyst.8.121103
+## 2              Argentina           10.5852/ejt.2024.958.2663
+## 3              Argentina               10.3897/vz.74.e115242
+## 4              Australia              10.3897/zse.100.113243
+## 5              Australia               10.3897/vz.74.e128775
+## 6              Australia           10.11646/zootaxa.5551.2.4
+## 7              Australia           10.11646/zootaxa.5406.1.1
+## 8              Australia           10.11646/zootaxa.5443.4.3
+## 9              Australia    10.3853/j.2201-4349.75.2023.1876
+## 10             Australia           10.11646/zootaxa.5432.3.1
+## 11             Australia           10.11646/zootaxa.5536.1.6
+## 12               Bolivia           10.11646/zootaxa.5468.3.7
+## 13                Brazil          10.1093/zoolinnean/zlad138
+## 14                Brazil                 10.7717/peerj.18265
+## 15                Brazil           10.11646/zootaxa.5496.3.2
+## 16                Brazil           10.11646/zootaxa.5474.3.1
+## 17                Brazil          10.3897/subtbiol.50.139914
+## 18                Brazil           10.11646/zootaxa.5418.4.5
+## 19                Brazil           10.11646/zootaxa.5406.3.9
+## 20                Brazil           10.11646/zootaxa.5419.3.8
+## 21                Brazil           10.11646/zootaxa.5448.4.4
+## 22                Brazil               10.3897/vz.74.e130038
+## 23                Brazil       10.1080/00222933.2024.2387798
+## 25                Brazil           10.5852/ejt.2024.947.2611
+## 26                Brazil           10.5852/ejt.2024.921.2421
+## 27                Brazil          10.11646/phytotaxa.634.3.1
+## 28                Brazil         10.5252/zoosystema2024v46a5
+## 29                Brazil         10.3897/zookeys.1213.122265
+## 34                Brazil               10.3897/vz.74.e106238
+## 35                Brazil           10.5852/ejt.2024.921.2419
+## 37              Cambodia           10.11646/zootaxa.5537.3.5
+## 38              Cambodia           10.5852/ejt.2024.958.2665
+## 40              Cameroon         10.3897/zookeys.1193.111544
+## 42                 Chile           10.11646/zootaxa.5405.3.2
+## 45                 China                  10.25221/fee.512.1
+## 47                 China              10.3897/zse.100.120676
+## 50                 China                 10.11865/zs.2024101
+## 51                 China           10.11646/zootaxa.5410.3.1
+## 59                 China         10.3897/zookeys.1221.137930
+## 71                 China           10.11646/zootaxa.5406.3.8
+## 73                 China               10.3897/vz.74.e108013
+## 75                 China       10.3897/herpetozoa.37.e135222
+## 76                 China         10.3897/zookeys.1210.128121
+## 81                 China         10.3897/zookeys.1187.110704
+## 83                 China               10.3897/vz.74.e113899
+## 84                 China              10.3897/zse.100.118879
+## 85                 China                 10.11865/zs.2024101
+## 86                 China         10.3897/zookeys.1214.130101
+## 90                 China         10.3897/zookeys.1212.122222
+## 91                 China              10.3897/zse.100.119520
+## 96                 China         10.3897/zookeys.1192.106013
+## 98                 China              10.3897/zse.100.127635
+## 103                China         10.3897/zookeys.1203.119218
+## 104                China           10.11646/zootaxa.5447.2.1
+## 106                China         10.3897/zookeys.1208.126092
+## 108                China              10.3897/BDJ.12.e137852
+## 109                China         10.3897/zookeys.1192.114315
+## 111                China                10.3897/nl.47.109920
+## 112                China           10.11646/zootaxa.5447.2.1
+## 116                China           10.11646/zootaxa.5486.1.6
+## 117                China           10.11646/zootaxa.5403.5.4
+## 118             Colombia         10.3897/zookeys.1196.114861
+## 119             Colombia                      10.1206/4011.1
+## 122             Colombia           10.11646/zootaxa.5437.2.5
+## 124              Ecuador               10.3897/vz.74.e130147
+## 125              Ecuador          10.1093/zoolinnean/zlad073
+## 127              Ecuador           10.11646/zootaxa.5453.2.6
+## 128              Ecuador           10.11646/zootaxa.5474.2.1
+## 129              Ecuador           10.11646/zootaxa.5437.4.3
+## 131              Ecuador           10.3897/evolsyst.8.118855
+## 133              Ecuador              10.3897/zse.100.117952
+## 134              Ecuador               10.3897/vz.74.e128528
+## 135              Ecuador              10.3897/zse.100.116350
+## 137             Ethiopia          10.11646/zootaxa.5569.1.4 
+## 138               France            10.3897/alpento.8.118039
+## 139             Honduras           10.11646/zootaxa.5543.1.5
+## 140              Iceland           10.5852/ejt.2024.930.2487
+## 141                India           10.11646/zootaxa.5443.1.6
+## 142                India           10.11646/zootaxa.5419.2.5
+## 144                India           10.11646/zootaxa.5433.2.8
+## 145                India           10.11646/zootaxa.5469.1.1
+## 148                India           10.11646/zootaxa.5405.3.3
+## 149                India 10.3897/zse.100.116611@Zoosyst_Evo 
+## 151                India           10.11646/zootaxa.5443.3.3
+## 153                India              10.3897/zse.100.110020
+## 155                India         10.3897/zookeys.1215.133522
+## 157                India           10.11646/zootaxa.5477.3.4
+## 158                India         10.3897/zookeys.1196.117947
+## 160                India             10.3897/zse.100.113049 
+## 162                India           10.5852/ejt.2024.930.2485
+## 164                India           10.11646/zootaxa.5523.2.1
+## 167            Indonesia                 10.11865/zs.2024101
+## 168            Indonesia                  10.25221/fee.507.3
+## 169            Indonesia           10.11646/zootaxa.5566.3.4
+## 175              Jamaica           10.1590/2358-2936e2023006
+## 177                Japan           10.1590/2358-2936e2023005
+## 179                Japan           10.11646/zootaxa.5432.1.4
+## 184                Japan           10.11646/zootaxa.5443.3.6
+## 189              Lesotho          10.1515/mammalia-2023-0119
+## 191             Malaysia                  10.25221/fee.494.1
+## 192               Mexico       10.3897/herpetozoa.37.e122213
+## 193               Mexico          10.11646/phytotaxa.634.3.2
+## 194               Mexico           10.5852/ejt.2024.947.2625
+## 196              Myanmar              10.26107/RBZ-2024-0001
+## 198              Myanmar              10.26107/RBZ-2024-0001
+## 199              Myanmar               10.3897/vz.74.e109088
+## 204                 Oman         10.3897/zookeys.1198.119152
+## 210               Taiwan         10.3897/zookeys.1220.130885
+## 211               Taiwan         10.3897/zookeys.1206.118757
+## 215             Tanzania           10.5852/ejt.2024.918.2405
+## 216             Thailand               10.3897/vz.74.e113347
+## 218             Thailand               10.3897/vz.74.e112132
+## 219             Thailand         10.3897/zookeys.1210.127557
+## 221             Thailand         10.3897/zookeys.1215.116624
+## 222             Thailand           10.11646/zootaxa.5471.3.6
+## 223             Thailand           10.5852/ejt.2024.930.2489
+## 227             Thailand           10.11646/zootaxa.5447.4.5
+## 229             Thailand          10.1093/zoolinnean/zlad164
+## 230             Thailand               10.3897/vz.74.e113347
+## 231             Thailand              10.26107/RBZ-2024-0006
+## 236             Thailand              10.3897/zse.100.116601
+## 237               Uganda           10.11646/zootaxa.5458.4.1
+## 238              Uruguay           10.5852/ejt.2024.925.2455
+## 240              Vietnam         10.3897/zookeys.1223.139335
+## 243              Vietnam         10.3897/zookeys.1193.114957
+## 245              Vietnam           10.11646/zootaxa.5428.1.4
+## 246              Vietnam         10.3897/zookeys.1204.120873
+## 247              Vietnam           10.11646/zootaxa.5474.4.3
+## 249              Vietnam           10.5852/ejt.2024.975.2769
+## 250              Vietnam         10.3897/zookeys.1192.117135
+## 251              Vietnam           10.11646/zootaxa.5410.3.1
+## 252              Vietnam               10.3897/vz.74.e116992
+## 253              Vietnam         10.3897/zookeys.1206.123841
+## 254              Vietnam           10.11646/zootaxa.5437.4.8
+## 255              Vietnam              10.3897/BDJ.12.e133363
+## 256              Vietnam       10.3897/herpetozoa.37.e137809
+## 257              Vietnam           10.11646/zootaxa.5406.1.4
+## 258              Vietnam         10.3897/zookeys.1186.113701
+## 259              Vietnam           10.11646/zootaxa.5514.6.1
+## 261              Vietnam           10.11646/zootaxa.5406.1.7
+## 262              Vietnam           10.11646/zootaxa.5486.1.3
+##                                    plazi  QID_items
+## 1   DF1D1955-945C-44BF-B4FB-5E33548C9EEF Q127815097
+## 2   780E50E1-48E8-474C-8935-070FCD6B09AE Q132163685
+## 3   797C39B9-EADE-4A18-8BD4-4875AD374443 Q124988842
+## 4   37DE5E77-7A67-4069-98C2-9FEA941205C8 Q125696676
+## 5   4E3F9A59-B628-507B-AA55-8B74BC462D31 Q130644039
+## 6   EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB Q132079142
+## 7   03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA Q125024287
+## 8   03B587E3-FFDF-EE06-00F9-4B27FD01FE9F Q132166165
+## 9   03B8E56D-1702-7E68-0F60-B4835ED23916 Q132166166
+## 10  933987E1-FFFC-FFFC-80A3-989AFC25A2E4 Q132166170
+## 11  21D7BF40-8680-436A-B0DA-4D0E3D07D6EE Q131138411
+## 12  590C8795-FFB2-EB54-FF59-517B9AEBB0E0 Q126690227
+## 13  3D0D87B2-981E-FFFE-41A6-EEC4B07D2CF9 Q125262436
+## 14  03C3F71A-8B5F-673E-8086-FCF2FDB2FDCF Q130910241
+## 15  F16887FD-BF66-3955-FF17-F95F26622771 Q132170146
+## 16  50728799-0C34-4C26-B9C0-6FD4FD26FB6F Q132170148
+## 17  1457552D-CC5E-5B1E-A39D-D4E52B46C778 Q132170150
+## 18  DA144134-D507-FFD2-FF09-3A2AE02E4A29 Q125700249
+## 19  038B2411-FFEC-BE30-FF30-54B8FAA3FAF9 Q125700067
+## 20  EE158795-635B-054D-F0DB-1937FBFEFD67 Q125700472
+## 21  9827878A-AC33-FFB8-FF1A-FA3DFB6BF943 Q132173394
+## 22  45B7FA84-A69D-4976-8811-181B8FFD9FC1 Q132173395
+## 23  9C25B380-D5DA-402B-8E98-C0296777AE0B Q132173396
+## 25  8727A003-C54F-46C0-9A10-74C2EF371E43 Q128694197
+## 26  039B87F6-FF80-181E-F25C-BAF23D75A676 Q125700050
+## 27  007F352F-FFCA-626A-FF24-75336955B1EE Q125696213
+## 28  B61E5142-E53A-4AD7-AF85-B24944928069 Q125700318
+## 29  697AF1B8-7B5E-5EFA-BEF6-02ADD4E48B4D Q130378829
+## 34  E0F5FBF9-C031-4999-B952-7E1F42893B22 Q124833365
+## 35  12887D5F-9548-4062-B85C-9545BB5108FC Q124880926
+## 37  D16B87DF-FFA7-7F63-FF16-FDBAF06FF87F Q131337530
+## 38  CDC2CFD0-B1E8-4DA2-8114-5F4BD37D8782 Q130391891
+## 40  3D9F4858-D646-4A23-9620-E3C883642BD0 Q125090296
+## 42  03F087C0-EA63-FFA6-4ABB-FF3AACB1F8B6 Q125696809
+## 45  B76087BE-FFA7-FFB7-FF7C-81448019C16E  Q55439211
+## 47  18A16B30-C113-4285-8A76-058999C3D0E1 Q126011919
+## 50  81114138-FFAF-FFCF-7D9F-FB2EC359FDD9 Q124821111
+## 51  2F1F87B4-081C-FFA3-0AE0-FB800623439A Q124611291
+## 59  41059653-9C0C-5EFD-91D5-09E2C260578B Q131545573
+## 71  FA5B879A-521B-FFFB-FDF1-E3A7FCDAFCC4 Q125700117
+## 73  5B4E8AC7-37AD-4192-83E3-A05E49393B7B Q125342730
+## 75  15A7EEED-B7DA-4C27-BA9F-CE0C53491BA2 Q130813397
+## 76  C1F210C4-1623-4B50-BB2A-F9DBAD7F197A Q130074069
+## 81  FE6F8314-08C6-47F5-AA6D-E97E45D0E765 Q124325176
+## 83  C2814152-01A1-4558-892B-9D538ED1FE9D Q124838162
+## 84  182E48F4-9743-4B7F-A825-FA63499F15F2 Q126032553
+## 85  81114138-FFBC-FFD9-7D9F-FA26C099FD41 Q124821465
+## 86  70F158B3-D851-5EED-AEA3-08964ADD207A Q130459993
+## 90  D770076A-DB34-4045-AEF9-FFFBC2FBA5D8 Q131316663
+## 91  67337E27-2D91-4C21-B557-AA36ECABDAA1 Q125948791
+## 96  4175879C-5620-49B0-B016-8489657C6069 Q125024193
+## 98  C2E61BB7-426B-448F-8A9C-66B993E7201A Q128041901
+## 103 8BF67904-A757-4AC7-BF2D-C3A0C6F40A69 Q126327712
+## 104 D55287B7-E47B-D877-FF7F-FA30FDD1FA94 Q125857690
+## 106 18334E5C-BED9-47AE-A42D-FA916E7B2CC2 Q128613615
+## 108 51128E69-0B84-58EA-87D5-1AF16401264F Q131825353
+## 109 D51EC9FE-C269-4189-9815-AB65D3FBE0B6 Q124836693
+## 111 CAB92047-39DC-47FB-8EBC-B1042D2487FC Q125700469
+## 112 D55287B7-E473-D872-FF7F-F999FDD1FDCB Q125939837
+## 116 4E4C8782-C26A-F211-FF40-FA23FB9FFE0F Q128041957
+## 117 039D1B29-FFA3-FFB1-FF57-8F38F79EFBEF Q125696541
+## 118 3392CAEB-0277-419E-ADAE-F03B1B1D697A Q125201018
+## 119 D966232C-003D-FF98-A6F7-7758FE6EFA61 Q127427383
+## 122 03B1B94C-A776-603C-FF02-2003FC26F872 Q131739745
+## 124 41D455A5-216C-50D0-931D-AAAD1607ABA8 Q130644056
+## 125 AB25878A-5868-7527-06A3-14157E89514F Q125261951
+## 127 033A295A-B327-498B-AC05-0519F1560FE7 Q126075196
+## 128 039887DD-034A-FFDF-78C2-4EF7ABEFC629 Q127162869
+## 129 03A90D54-6544-216E-FF6A-FF5EFD4DFF46 Q125526237
+## 131 D35634D7-9179-53E2-9BC4-0083BB156CA4 Q126362961
+## 133 E9EF3E14-9D66-5F44-9DB1-97F605F8CF2D Q127926256
+## 134 F5BF874C-50B4-4703-9C76-45BCE3EB2F61 Q131853124
+## 135 458CECC2-8C71-4390-8FD5-B4F1F6F42317 Q127328156
+## 137 03D887FD-FFDC-6D7D-FF18-0F58FE64CBCC Q131940763
+## 138 9DAA5D35-8EC4-441F-8180-0A063BFBD30F Q128839494
+## 139 7B5C87D5-4F7C-FF82-5FB4-925FE285F9F3 Q131986719
+## 140 BEBF5415-BCDF-4CD2-8BD3-A89F20CB7067 Q125622905
+## 141 6E688161-FFDD-FFC0-51B8-DEF510B0FCEE Q131421881
+## 142 09EA6CAD-919C-4BB7-BFCB-8A2171AD4620 Q125700374
+## 144 038E8784-FFAC-FFE7-FF40-88D73460D131 Q127165362
+## 145 D4CE3F8B-2A64-4249-B175-C46DB540ABC5 Q126690198
+## 148 C88C6AFA-9889-4E3E-A2CD-816FDA5481FD Q124616379
+## 149 AF62080E-7DF4-43AE-BF0C-D83C0440E8AA Q125696657
+## 151 C76F88A6-3CCB-4F7E-94B1-18B3EA444F72 Q125565384
+## 153 879135E3-C951-4A67-9FF8-4233D198E34B Q124657666
+## 155 C4C0B4D7-20BF-4566-959B-C015940AF4E6 Q130722975
+## 157 B404F4AC-CEF5-4225-9595-4CD47313E204 Q127328158
+## 158 5C640413-8B2F-417F-AD1C-A867AFE5A7B5 Q125200332
+## 160 8FF8C587-E536-44E9-BD1F-9D4995FE3E1F Q124846089
+## 162 AD0BD28D-EBA7-4EB9-B14B-1FEEF34CD2FD Q125774163
+## 164 4EAFC175-AE18-4A92-B9E5-DA1CAB1D607F Q130635669
+## 167 81114138-FFAB-FFD0-7D9F-FA15C099FCCF Q124821279
+## 168 03B2B845-E850-FFFE-FF3D-425C507C1393 Q131868447
+## 169 03DB8794-3B48-037D-419A-44C726243339 Q131784050
+## 175 03E987EB-FF0F-FFFB-FEBE-FCAEFB2FFD52 Q130303034
+## 177 0F13E56C-CDA3-4514-95CC-09F621D1DBA8 Q130299312
+## 179 03CDA902-FF84-FFB7-778C-FA6DB760F83D Q125623427
+## 184 DF59DE4D-FFD2-F145-FF30-314F2322FEDD Q125948810
+## 189 FFA65EA6-8DD4-407B-ABFC-610E8C399574 Q127425541
+## 191 03ADE55D-FFA8-B906-FF69-FE8EFE63878E Q131209177
+## 192 ABC23F36-12F3-5DF3-807B-D6B53089A17E Q127038579
+## 193 03B18252-FFFB-FFA8-46FA-FD0CFBC9D0C0 Q125014430
+## 194 03F3204B-FF91-8201-55CD-B21C612DFA7B Q129264110
+## 196 0386C114-1640-FFFF-FC45-F8AF3C2EEEE4 Q130614191
+## 198 0386C114-1644-FFE5-FF67-FBFF3F97EFAD Q130604488
+## 199 5BFD358A-B843-413A-B4AB-931536B89F97 Q124867193
+## 204 661F1795-811C-4B6B-8535-1E33032B6D12 Q125964476
+## 210 50B54A9D-F018-56E5-956A-358C9A0EC9E2 Q131555009
+## 211 EEF6E028-0E05-5326-8C07-92A5E5D130FC Q127328145
+## 215 34AAD11B-3CA4-44FA-8E21-A13047FC01BC Q124672151
+## 216 D1682045-34E5-458B-936D-B91434FEEADE Q125342698
+## 218 37DE18D9-FD02-4DD3-9176-BD1A3655955B Q125688399
+## 219 22E2BD02-9672-434B-B4DF-43AD636677B7 Q130261749
+## 221 8CB99CD2-A029-4FD4-928C-82AD853F9A04 Q131316750
+## 222 94F06885-F7AA-4D64-8664-505A151E06DC Q126877391
+## 223 AF38FFC5-F4E0-48CE-A897-8C350982625F Q125200967
+## 227 03F287C7-FFC9-FFE6-0EB9-27FBFD67FA0F Q125852037
+## 229 0D0487C4-FFCD-FFA3-FF2F-4F6EFDFAE7CA Q131986715
+## 230 BE72A92E-E498-4C84-9BC1-8EF0EDB44905 Q125342709
+## 231 C87E87EB-3D2C-FF84-FC3A-FB5EFDEBBEB9 Q125149187
+## 236 F19C3493-FA00-4F4A-A9B1-4A39B5C5FF0A Q124837018
+## 237 9FF3B31F-E75A-414C-9986-E5D367878D43 Q126362949
+## 238 A57C501C-8E3E-4D0B-B47A-8FF1C8DBF1DA Q125054405
+## 240 E3178CAC-9400-549E-A75F-0DE102E892AF Q131825296
+## 243 689317C8-D1E4-4526-81CC-E89B9C11E42B Q125700421
+## 245 073987D5-FFB8-3752-FF3C-FCD3FD0CFC56 Q125201002
+## 246 3A9B2F5F-5662-5965-ACE8-6975551502D1 Q127328164
+## 247 5593ADD1-63B3-4F39-BB5B-02D400B71D5C Q126965426
+## 249 CB3887FB-7173-620A-FB48-F995FC1CFAC4 Q131765964
+## 250 B03559F4-9C45-4991-8A74-5C346FCD6C37 Q125815748
+## 251 2F1F87B4-0818-FFA9-0AE0-FF0C064243CA Q124610631
+## 252 B58E6FB7-E25B-433F-8CBA-4E76405F371B Q125019553
+## 253 EFBD9EA8-897A-46F4-91AD-12E03C26E7F5 Q127328151
+## 254 03FEBE76-FF8E-F236-00BA-4A9BFEBF0B61 Q131362625
+## 255 B6350DEA-E691-45AC-A1EF-C8BC73327045 Q130796216
+## 256 09A5260E-31A1-5CBA-A44D-DF3A92883500 Q131466982
+## 257 B22B87C1-CF16-3859-76D8-3F99FE12FF09 Q124837785
+## 258 32D5F308-98C3-465F-85FE-C96DC1237A87 Q131765994
+## 259 675F87D6-1718-FFBC-60BF-5F4B5F1AFB82 Q131316701
+## 261 976F0F09-FFD7-FFD1-FF11-FB26FAFD3D51 Q125699926
+## 262 867887EB-FFB2-FFB4-FF13-FF4FF0C4FEBC Q128802274</code></pre>
+<p>Ce document présente une méthode pour envoyer régulièrement en
+groupes des informations provenant du compte Mastodon vers Wikidata. Il
+faut dans la mesure du possible ne pas traiter à chaque fois l’ensemble
+des nouvelles espèces présentes dans l’ensemble des <em>toots</em>
+envoyés par Plazi sur Mastodon depuis la création du compte. Réécrire
+des <em>statements</em>, refaire le travail à l’identique, n’est pas un
+problème en soi, puisque les informations ne sont pas dupliquées (il ne
+peut y avoir dans un élément de Wikidata deux fois ou plus la même
+propriété avec des valeurs identiques.) Toutefois ne pas traiter d’une
+fois sur l’autre les mêmes espèces sans y apporter aucun enrichissement
+est un gaspillage d’électricité. On va donc exclure dans la liste df3
+les éléments qui ont déjà été traités par nous. Nous considérons qu’à
+part nous, peu de gens attribuent le pays de découverte (P189) au
+nouveau taxon. Lorsque l’élément existe et que nous ne sommes pas à
+l’origine de sa création, nous remarquons que la propriété P189, n’y est
+jamais présente. Nous considèrerons donc que si cette propriété est déjà
+présente, alors c’est que nous avons déjà traité l’élément. Nous allons
+donc supprimer de la liste df3, les éléments qui dans Wikidata ont déjà
+la propriété 189.</p>
+<p>Pour cela nous avons besoin de procéder en plusieurs étapes : 1.
+Créer une liste de tous identifiants d’éléments (QID_items) disponibles
+dans df3 2. Insérer cette liste dans une requête Wikidata 3. Envoyer
+cette requête et récupérer les résultats dans un autre tableau (results)
+4. Dans ce tableau, les QID_items sont automatiquement renommés “items”
+; on va les renommer QID_items pour être en mesure de réconcilier le
+tableau obtenu par la requête Wikidata et df3 qui comporte également la
+variable QID_items qui nous servira donc de pivot pour cette fusion. 5.
+Exclure du tableau ainsi créé tous les éléments qui ont déjà une valeur
+à la colonne P189 (déjà traités) C’est ce que font les deux scripts
+suivants :</p>
+<pre class="r"><code>library(WikidataR)
+library(dplyr)
+
+q_list &lt;- c(df3$QID_items) # constitution d&#39;une liste avec tous les identifiants de pays présents dans df1
+
+qid_list &lt;- c(paste0(&quot;wd:&quot;,q_list, collapse = &quot; &quot;)) # ajout du suffixe wd: aux identifiants de pays (pour que le vecteur soit conforme à la syntaxe de la requête dans Wiidata)
+
+
+query_sparql &lt;- paste0(&quot;SELECT ?item ?locationOfDiscovery 
+WHERE {  
+    VALUES ?item {&quot;, qid_list,&quot;}
+      OPTIONAL { ?item wdt:P189 ?locationOfDiscovery. }
+SERVICE wikibase:label { bd:serviceParam wikibase:language &#39;en&#39;. }
+}&quot;)  # rédaction de la requête query_sparql en y insérant le vecteur des identifiants de pays avec leur suffixe wd:
+
+results &lt;- query_wikidata(query_sparql) # envoi de la requête vers Wikidata</code></pre>
+<pre><code>## Rows: 141 Columns: 2
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (2): item, locationOfDiscovery
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>names(results)[names(results) == &#39;item&#39;] &lt;- &#39;QID_items&#39; # renommage de la colonne item en QID_items, nom de colonne commun avec df1 en vue d&#39;une fusion des deux tableaux sur la base de cette colonne
+
+df3 &lt;- merge(df3, results, by = &quot;QID_items&quot;) # fusion des deux tableaux
+print(df3)</code></pre>
+<pre><code>## [1] QID_items            species_name         taxon               
+## [4] qid                  country_of_discovery doi                 
+## [7] plazi                locationOfDiscovery 
+## &lt;0 lignes&gt; (ou &#39;row.names&#39; de longueur nulle)</code></pre>
+<p>filtrage de df3 pour ne retenir que les éléments qui ne disposent pas
+déjà de la propriété P189 :</p>
+<pre class="r"><code>df3  &lt;- df3 %&gt;%
+  filter(is.na(locationOfDiscovery)) # suppression des items qui ont déjà la propriété P189 (pays de découverte) avec un identifiant de pays
+
+print(df3) # affichage des 10 premiers résultats de la liste </code></pre>
+<pre><code>## [1] QID_items            species_name         taxon               
+## [4] qid                  country_of_discovery doi                 
+## [7] plazi                locationOfDiscovery 
+## &lt;0 lignes&gt; (ou &#39;row.names&#39; de longueur nulle)</code></pre>
+<p>Maintenant que nous avons un tableau complet de tous les éléments
+déjà présents dans Wikidata et susceptibles d’être enrichis par des
+<em>statements</em> supplémentaires (ajout de propriétés et de leurs
+valeurs), nous allons constituer un sous-groupe de 3 items pour vérifier
+que notre envoi se déroule bien.</p>
 <pre class="r"><code>df3_sub &lt;- slice_head(df3, n = 3, by = NULL)
 df3_sub &lt;- df3_sub %&gt;% 
   mutate(
@@ -1143,11 +2955,13 @@ df3_sub &lt;- df3_sub %&gt;%
   )
 df3_sub &lt;- select(df3_sub, QID_items, species_name, Len, P189, P356, P1992)
 print(df3_sub)</code></pre>
-<pre><code>##    QID_items          species_name                   Len P189                      P356                                P1992
-## 1 Q127815097       Panaspis ericae       Panaspis ericae Q916 10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF
-## 2 Q132163685 Minibiotus dispositus Minibiotus dispositus Q414 10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE
-## 3 Q124988842          Ctenomys uco          Ctenomys uco Q414     10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443</code></pre>
-<pre class="r"><code>import2 &lt;- df3_sub %&gt;% 
+<pre><code>## [1] QID_items    species_name Len          P189         P356        
+## [6] P1992       
+## &lt;0 lignes&gt; (ou &#39;row.names&#39; de longueur nulle)</code></pre>
+<pre class="r"><code>library(tidyr)
+library(stringr)
+
+import2 &lt;- df3_sub %&gt;% 
   select(QID_items, 
          matches(&quot;^L&quot;, ignore.case = FALSE), 
          matches(&quot;^D&quot;, ignore.case = FALSE), 
@@ -1161,21 +2975,8 @@ print(df3_sub)</code></pre>
   distinct()
 
 print(import2)</code></pre>
-<pre><code>## # A tibble: 12 × 3
-##    QID_items  property value                               
-##    &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;                               
-##  1 Q127815097 Len      Panaspis ericae                     
-##  2 Q127815097 P189     Q916                                
-##  3 Q127815097 P356     10.3897/evolsyst.8.121103           
-##  4 Q127815097 P1992    DF1D1955-945C-44BF-B4FB-5E33548C9EEF
-##  5 Q132163685 Len      Minibiotus dispositus               
-##  6 Q132163685 P189     Q414                                
-##  7 Q132163685 P356     10.5852/ejt.2024.958.2663           
-##  8 Q132163685 P1992    780E50E1-48E8-474C-8935-070FCD6B09AE
-##  9 Q124988842 Len      Ctenomys uco                        
-## 10 Q124988842 P189     Q414                                
-## 11 Q124988842 P356     10.3897/vz.74.e115242               
-## 12 Q124988842 P1992    797C39B9-EADE-4A18-8BD4-4875AD374443</code></pre>
+<pre><code>## # A tibble: 0 × 3
+## # ℹ 3 variables: QID_items &lt;chr&gt;, property &lt;chr&gt;, value &lt;chr&gt;</code></pre>
 <pre class="r"><code>library(WikidataR)
 write_wikidata(
   items        = import2$QID_items,
@@ -1185,6 +2986,10 @@ write_wikidata(
   api.username = &quot;Udo_Bolano&quot;, 
   api.token    = &quot;$2y$10$qy3Omn7Dn4DaXAD1QBWcs.dNjrKwlrc.cFX2rVZMyQ7oYt2xYSmJS&quot;, #api.token    = mettre ici le token récupéré sur https://quickstatements.toolforge.org/#/user
   )</code></pre>
+</div>
+</div>
+<div id="bibliographie" class="section level1 unnumbered">
+<h1 class="unnumbered">Bibliographie</h1>
 <div id="refs" class="references csl-bib-body" entry-spacing="0" line-spacing="2">
 <div id="ref-schochSoftwarePresentationRtoot2023b" class="csl-entry">
 <div class="csl-left-margin">1. </div><div class="csl-right-inline">Schoch, D. &amp; Chan, C. <a href="https://doi.org/10.1177/20501579231176678">Software presentation:

@@ -329,41 +329,18 @@ get_qid <- function(name) {
   }
 }
 df1$QID_items <- sapply(df1$species_name, get_qid)
-head(df1, 10)
+print(df1)
 
 
 ```
 
-```{r}
-library(WikidataR)
-
-q_list <- c(df3$QID_items) 
-
-qid_list <- c(paste0("wd:",q_list, collapse = " "))
+Dans la colonne QID_items, nous avons tantôt un identifiant unique d'élément de Wikidata (QID), tantôt nous n'avons rien. 
+Lorsque l'identifiant a été récupéré, c'est donc parce qu'un élément existe déjà qu'il conviendra d'enrichir avec de nouvelles propriétés
+Lorsque l'identifiant n'existe pas, c'est qu'il n'a pas encore été créé, il faudra le créer avec ses propriétés. 
 
 
-query_sparql <- paste0("SELECT ?item ?locationOfDiscovery 
-WHERE {  
-    VALUES ?item {", qid_list,"}
-      OPTIONAL { ?item wdt:P189 ?locationOfDiscovery. }
-SERVICE wikibase:label { bd:serviceParam wikibase:language 'en'. }
-}")
-print(query_sparql)
-
-results <- query_wikidata(query_sparql)
-print(results)
 
 
-```
-
-```{r vérifier que les items disposant d'un QID n'ont pas encore la propriété Pays de découverte}
-
-library(WikidataR)
-processed <- query_wikidata(query)
-print(processed)
-
-
-```
 
 Maintenant que cette nouvelle colonne QID_items est créée, avec les identifiants de Wikidata quand les éléments sont déjà créés, vide (NA lorsque ces éléments n'ont pas encore été créés), on va pouvoir scinder ce tableau en deux : dans le premier (df2), les items qui n'ont pas encore été créés sur Wikidata, dans le second (df3) les items qui ont déjà été créés. Créons déjà df2 :
 
@@ -429,6 +406,19 @@ La première ligne constitue un tableau extrait de df2. Ce tableau ne comporte q
 Il s'agit de créer des items qui n'existent pas encore dans Wikidata ; n'importe quel utilisateurice peut ajouter ou supprimer des *statements* à un ou plusieurs éléments de Wikidata. Mais supprimer des éléments nécessite un compte d'administrateurice. Il n'y a pas de retour en arrière possible pour le commun des mortels en cas d'erreur (même si les conséquences des erreurs sont limitées).
 Donc autant être prudent et procéder avec un échantillon de trois items, pour vérifier que tout fonctionne et bien comprendre comment cela fonctionne.
 
+Les étapes qui suivent procèdent à la mise en forme de cette information pour qu'elle soit exploitable par la forge de Wikidata, c'est à dire pour qu'elles soient véritablement envoyées vers la base de Wikidata. Pour ce faire, nous suivons la méthode adoptée par Katharina Brunner. 
+
+Elle consiste en deux temps à : 
+renommer les colonnes pour qu'elles correspondent à des propriétés enregistrées dans Wikidata : 
+
+| colonne du tableau | propriété | commentaire |
+|:--|:--|:--|
+| CREATE_ (suivi d'un numéro unique) | item | quand l'élément n'existe pas, l'item doit être créé avec la commande CREATE suivi d'un identifiant unique dans la liste des éléments à traiter |
+| species_name | Len | label (=titre de l'élément en anglais)
+| qid | P189 | qid est l'identifiant récupéré de Wikidata correspondant au pays de découverte tel qu'indiqué dans Mastodon) | 
+| taxon | P225 | le taxon est l'équivalent du nom de l'espèce récupéré sur Mastodon |
+| doi | P356 | le doi est celui de la publication à laquelle il est fait référence pour chaque découverte sur Mastodon |
+| plazi | P1992 | il s'agit du matricule de traitement de l'espèce dans la banque de Plazi |
 
 ```{r selection des trois items de tête de la liste df2}
 
@@ -447,6 +437,33 @@ df2_sub <- select(df2_sub, item, species_name, Len, P225, P189, P356, P1992) # s
 print(df2_sub)
 
 ```
+
+Ici il y a une subtilité à laquelle nous contraint le format d'import de Wikidata : 
+
+Tandis que nos candidats à l'envoi se présentent avec toutes leurs propriétés sur une seule ligne et autant de colonnes qu'il y a de propriétés, 
+La forge de Wikidata dipose l'information de façon verticale : 
+
+**Dans R :** 
+
+| liste des éléments | liste des items | propriété 1 | propriété 2 | propriété 3 |
+|:--|:--|:--|:--|:--|
+| élément 1 | item | propriété 1 | propriété 2 | propriété 3 |
+| élément 2 | item | propriété 1 | propriété 2 | propriété 3 |
+
+**Dans la forge**
+
+| élément | propriété |
+|:--|:--|
+| élémént 1 | item |
+| élément 1 | propriété 1 |
+| élément 1 | propriété 2 |
+| élément 1 | propriété 3 |
+| élémént 2 | item |
+| élément 2 | propriété 1 |
+| élément 2 | propriété 2 |
+| élément 2 | propriété 3 |
+
+Pour faire pivoter le tableau que nous avons obtenu et le formater de façon verticale, nous allons utiliser la fonction *pivot_longer* du package *tidyr* (encore un package à charger en cours de route)
 
 ```{r code de Katharina Brunner}
 library(tidyr)
@@ -486,14 +503,73 @@ write_wikidata(
 
 ```
 
+## traitement des éléments qui sont déjà présents dans Wikidata
 
+df1 comporte des éléments déjà présents dans Wikidata et d'autres qui n'y sont pas. 
+Le script qui suit récupère les lignes où la valeur QID_items n'est pas nulle, mais est la valeur récupérée de Wikidata à l'étape précédente. 
+le dataframe 3 (df3) recensera désormais uniquement les éléments qui sont déjà présents dans Wikidata.
 
 ```{r récupération des items qui sont déjà présents dans Wikidata}
 #df3 : items déjà créésdans Wikdata
 df3  <- df1[!is.na(df1$QID_items),] # filter(df1 =="NA") won't do it (see here https://stackoverflow.com/questions/7980622/subset-of-rows-containing-na-missing-values-in-a-chosen-column-of-a-data-frame#7980765)
-head(df3, 10)
+print(df3)
 
 ```
+
+Ce document présente une méthode pour envoyer régulièrement en groupes des informations provenant du compte Mastodon vers Wikidata. 
+Il faut dans la mesure du possible ne pas traiter à chaque fois l'ensemble des nouvelles espèces présentes dans l'ensemble des *toots* envoyés par Plazi sur Mastodon depuis la création du compte. 
+Réécrire des *statements*, refaire le travail à l'identique, n'est pas un problème en soi, puisque les informations ne sont pas dupliquées (il ne peut y avoir dans un élément de Wikidata deux fois ou plus la même propriété avec des valeurs identiques.) Toutefois ne pas traiter d'une fois sur l'autre les mêmes espèces sans y apporter aucun enrichissement est un gaspillage d'électricité. 
+On va donc exclure dans la liste df3 les éléments qui ont déjà été traités par nous. 
+Nous considérons qu'à part nous, peu de gens attribuent le pays de découverte (P189) au nouveau taxon. Lorsque l'élément existe et que nous ne sommes pas à l'origine de sa création, nous remarquons que la propriété P189, n'y est jamais présente. 
+Nous considèrerons donc que si cette propriété est déjà présente, alors c'est que nous avons déjà traité l'élément. 
+Nous allons donc supprimer de la liste df3, les éléments qui dans Wikidata ont déjà la propriété 189.
+
+Pour cela nous avons besoin de procéder en plusieurs étapes : 
+1. Créer une liste de tous identifiants d'éléments (QID_items) disponibles dans df3
+2. Insérer cette liste dans une requête Wikidata
+3. Envoyer cette requête et récupérer les résultats dans un autre tableau (results)
+4. Dans ce tableau, les QID_items sont automatiquement renommés "items" ; on va les renommer QID_items pour être en mesure de réconcilier le tableau obtenu par la requête Wikidata et df3 qui comporte également la variable QID_items qui nous servira donc de pivot pour cette fusion. 
+5. Exclure du tableau ainsi créé tous les éléments qui ont déjà une valeur à la colonne P189 (déjà traités)
+C'est ce que font les deux scripts suivants : 
+
+```{r}
+library(WikidataR)
+library(dplyr)
+
+q_list <- c(df3$QID_items) # constitution d'une liste avec tous les identifiants de pays présents dans df1
+
+qid_list <- c(paste0("wd:",q_list, collapse = " ")) # ajout du suffixe wd: aux identifiants de pays (pour que le vecteur soit conforme à la syntaxe de la requête dans Wiidata)
+
+
+query_sparql <- paste0("SELECT ?item ?locationOfDiscovery 
+WHERE {  
+    VALUES ?item {", qid_list,"}
+      OPTIONAL { ?item wdt:P189 ?locationOfDiscovery. }
+SERVICE wikibase:label { bd:serviceParam wikibase:language 'en'. }
+}")  # rédaction de la requête query_sparql en y insérant le vecteur des identifiants de pays avec leur suffixe wd:
+
+results <- query_wikidata(query_sparql) # envoi de la requête vers Wikidata
+
+names(results)[names(results) == 'item'] <- 'QID_items' # renommage de la colonne item en QID_items, nom de colonne commun avec df1 en vue d'une fusion des deux tableaux sur la base de cette colonne
+
+df3 <- merge(df3, results, by = "QID_items") # fusion des deux tableaux
+print(df3)
+
+```
+
+filtrage de df3 pour ne retenir que les éléments qui ne disposent pas déjà de la propriété P189 :
+
+```{r}
+df3  <- df3 %>%
+  filter(is.na(locationOfDiscovery)) # suppression des items qui ont déjà la propriété P189 (pays de découverte) avec un identifiant de pays
+
+print(df3) # affichage des 10 premiers résultats de la liste 
+```
+
+Maintenant que nous avons un tableau complet de tous les éléments déjà présents dans Wikidata et susceptibles d'être enrichis par des *statements* supplémentaires (ajout de propriétés et de leurs valeurs), nous allons constituer un sous-groupe de 3 items pour vérifier que notre envoi se déroule bien. 
+
+
+
 
 ```{r selection des trois items de tête de la liste df3}
 
@@ -514,6 +590,8 @@ print(df3_sub)
 
 
 ```{r enrichissement}
+library(tidyr)
+library(stringr)
 
 import2 <- df3_sub %>% 
   select(QID_items, 
