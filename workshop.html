@@ -395,7 +395,18 @@ informations provenant de Mastodon</h1>
 De Mastodon à Wikidata</a></li>
 <li><a href="#récupération-des-toots-de-plazi" id="toc-récupération-des-toots-de-plazi">2. Récupération des toots de
 Plazi</a></li>
-<li><a href="#propriétés" id="toc-propriétés">Propriétés :</a></li>
+<li><a href="#préparer-les-données-en-vue-de-leur-envoi-vers-wikidata" id="toc-préparer-les-données-en-vue-de-leur-envoi-vers-wikidata">3.
+Préparer les données en vue de leur envoi vers Wikidata</a>
+<ul>
+<li><a href="#quest-ce-quun-statement-architecture-de-la-wikibase-de-wikidata" id="toc-quest-ce-quun-statement-architecture-de-la-wikibase-de-wikidata">3.1
+Qu’est-ce qu’un statement (architecture de la wikibase de
+Wikidata)</a></li>
+<li><a href="#assigner-des-éléments-pays-à-la-liste-de-pays-obtenus-via-mastodon" id="toc-assigner-des-éléments-pays-à-la-liste-de-pays-obtenus-via-mastodon">3.2
+assigner des éléments pays à la liste de pays obtenus via
+Mastodon</a></li>
+</ul></li>
+<li><a href="#créer-ou-enrichir" id="toc-créer-ou-enrichir">3.3 Créer ou
+enrichir</a></li>
 <li><a href="#création-dun-tableau-à-partir-des-données-relatives-aux-éléments-à-créer" id="toc-création-dun-tableau-à-partir-des-données-relatives-aux-éléments-à-créer">création
 d’un tableau à partir des données relatives aux éléments à
 créer</a></li>
@@ -730,7 +741,7 @@ pattern &lt;- &quot;(?&lt;=from #)(\\w+)&quot; # capture le mot qui vient après
 df &lt;- df %&gt;%
   mutate(
     country_of_discovery = str_extract(content, pattern),
-    country_of_discovery = str_to_title(country_of_discovery) 
+    country_of_discovery = str_to_title(country_of_discovery) #str_to_title permet de restaurer la majuscule à l&#39;iniotiale des noms de pays.
   )
 head(df[, 30:31], 10)</code></pre>
 <pre><code>## # A tibble: 10 × 2
@@ -746,6 +757,9 @@ head(df[, 30:31], 10)</code></pre>
 ##  8 Hericium yunnanense      China               
 ##  9 Tomopterna banhinensis   Mozambique          
 ## 10 Ankylopteryx hainanensis China</code></pre>
+<p>Avec la fonction de <em>stringr</em> “str_to_title” on a au passage
+restauré la majuscule à l’initiale du nom de pays qui avait disparu dans
+le message posté sur Mastodon.</p>
 <p>On va procéder de manière similaire pour extraire de la colonne
 “content” les DOI et les identifiants de la base Plazi. pour former
 l’expression régulière concernant les DOIs, on va s’aider du suffixe
@@ -804,37 +818,142 @@ head(df,10)</code></pre>
 ##  9 Tomopterna banhinensis   Tomopterna banhine… Mozambique           10.1… 8E2C…
 ## 10 Ankylopteryx hainanensis Ankylopteryx haina… China                10.1… 03B8…</code></pre>
 </div>
-<div id="propriétés" class="section level1">
-<h1>Propriétés :</h1>
-<p>location of discovery : <a href="https://www.wikidata.org/wiki/Property:P189">P189</a> described by
-source : <a href="https://www.wikidata.org/wiki/Property:P1343">P1343</a></p>
+<div id="préparer-les-données-en-vue-de-leur-envoi-vers-wikidata" class="section level1">
+<h1>3. Préparer les données en vue de leur envoi vers Wikidata</h1>
+<div id="quest-ce-quun-statement-architecture-de-la-wikibase-de-wikidata" class="section level2">
+<h2>3.1 Qu’est-ce qu’un statement (architecture de la wikibase de
+Wikidata)</h2>
+<p>Wikidata est la plus grande instance existante du logiciel Wikibase.
+Wikibase agence les éléments selon des propriétés. On parle de triplet.
+Un <em>statement</em> est l’action consistant à ajouter une propriété et
+un élément relatif à un élément existant.</p>
+<p>Par exemple, l’araignée <em>Sinodromus fujianensis</em> a été
+découverte en Chine est un <em>statement</em> qui associe à l’élément <a href="https://www.wikidata.org/wiki/Q131545573">Q131545573 “Sinodromus
+fujianensis”</a> la propriété <a href="https://www.wikidata.org/wiki/Property:P189">P189 “Pays de
+découverte”</a> qui correspond à l’élément <a href="https://www.wikidata.org/wiki/Q148">Q148 “République Populaire de
+Chine</a>. Cette relation illustre bien le modèle employé par la base de
+données :</p>
+<p>Q(élément) &gt; P(propriété) &gt; Q(élément)</p>
+<p>Si l’on rapport ce modèle aux informations que l’on a déjà extraites
+des toots de Plazi, nous avons donc le schéma suivant :</p>
+<table>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">élément Q</th>
+<th align="center">Propriété P</th>
+<th align="center">élément Q ou chaîne de caractères</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">une espèce donnée</td>
+<td align="center">Len (le nom en langue anglaise)</td>
+<td align="center">le nom de l’espèce (une chaîne de caractères)</td>
+</tr>
+<tr class="even">
+<td align="center">la même espèce</td>
+<td align="center">P189 (a été découvert dans un pays)</td>
+<td align="center">le nom du pays (un élément Q)</td>
+</tr>
+<tr class="odd">
+<td align="center">la même espèce</td>
+<td align="center">P225 (a pour nom de taxon)</td>
+<td align="center">le nom de l’espèce (une chaîne de caractères)</td>
+</tr>
+<tr class="even">
+<td align="center">la même espèce</td>
+<td align="center">P356 (a pour DOI)</td>
+<td align="center">le DOI de l’article dans lequel la découverte a été
+consignée</td>
+</tr>
+<tr class="odd">
+<td align="center">la même espèce</td>
+<td align="center">P1992 (a pour identifiant dans la base Plazi)</td>
+<td align="center">l’identifiant de la base Plazi</td>
+</tr>
+</tbody>
+</table>
+<p>Ajouter un <em>statement</em>, c’est ajouter une propriété et une
+valeur reliée à cette propriété à un élément.</p>
+</div>
+<div id="assigner-des-éléments-pays-à-la-liste-de-pays-obtenus-via-mastodon" class="section level2">
+<h2>3.2 assigner des éléments pays à la liste de pays obtenus via
+Mastodon</h2>
+<p>Si l’on veut ajouter à Wikidata le statement “l’araignée Sinodromus
+Fujinianensis a été découverte en Chine”, il faut prendre en garde a
+bien relier le bon élément (araignée Sinodromus) à la bonne entité
+“République Populaire de Chine”. Si l’on envoie cette information via
+une chaîne de caractères (en conservant le terme “China” présent dans le
+message posté sur Plazi), on pourrait potentiellement relier cette
+araignée à plusieurs éléments :</p>
+<p>1 People’s Republic of China (Q148) 2 mainland China (Q19188) 3
+porcelain (Q130693) : china 4 China (Q942154)</p>
+<p>Le 1 est ce qui convient le mieux (entité territoriale le 2 est un
+concept politique (la Chine moins Taïwan, ce qui suppose que la Chine
+soit la Chine “réunifiée” avec Taïwan) le 3 est un objet en porcelaine
+(qu’en anglais on nomme effectivement : china) le 4 est une localité
+mexicaine de la province du Nuevo Léon.</p>
+<p>Il y a un risque non négligeable qu’un processus automatisé
+d’information en direction de Wikipédia traite une chaîne de caractère
+comme China de telle sorte qu’un élément comme celui de cette
+municipalité mexicaine lui soit associé, en lieu et place de celui qui
+était visé. Pour éviter cela, nous allons croiser les noms de pays
+obtenus avec la liste des entités de pays que nous pourrons obtenir de
+Wikidata.</p>
+<p>Pour obtenir cette liste, il est nécessaire d’envoyer une requête via
+WikidataR.</p>
+<p>Ce package comporte une fonction de requêtage qui procède de la
+manière suivante :</p>
+<pre class="txt"><code>
+liste_elements &lt;- query_wikidata(&#39; 
+
+placer ici une requête en SPARQL
+
+&#39;)
+</code></pre>
+<p>Le SPARQL est le langage de requête utilisé pour interroger des bases
+comme Wikipedia Nous ne pouvons pas ici nous y attarder, nous nous
+contenterons de commenter les étapes de cette requête :</p>
+<pre class="txt"><code>SELECT ?item ?itemLabel           # sélectionne les items qui réalisent la condition ci-dessous et affiche leur item (QID) et leur label (=nom du pays)
+WHERE
+{
+
+     ?item wdt:P31 wd:Q6256 .     # les éléments sont (P31) des pays (Q6256)
+           
+              SERVICE wikibase:label { bd:serviceParam wikibase:language &quot;en&quot;. # saisit les labels anglophones des éléments en question 
+</code></pre>
+<p>Les résultats ne sont pas les identifiants eux-mêmes mais des URL (<a href="http://www.wikidata.org/entity/Q16" class="uri">http://www.wikidata.org/entity/Q16</a> pour le Canada par
+exemple) qui comportent ces identifiants (Q16). Nous rajoutons donc un
+bout de code qui permet de séparer le nom de domaine de ces URL des
+identifiants dont nous avons besoin et obtient de cette manière une
+nouvelle colonne “qid” qui recense les identifiants de cette liste de
+pays.</p>
+<p>Pour lier ce tableau des pays au précédent tableau, il faut disposer
+d’une colonne pivot qui doit porter le même nom dans les deux cas. Ainsi
+dans le dataframe “countries_id”, on peut soit renommer la colonne
+ItenLabel en “country_of_discovery” qui est déjà présente dans l’autre
+tableau (df), soit copier-coller le contenu de la colonne “itemLabel”
+héritée de l’interrogation en Sparql dans une nouvelle colonne qu’on va
+nommer “country_of_discovery”. Nous avons choisi la deuxième voie.</p>
 <pre class="r"><code>library(WikidataR)
-library(WikidataQueryServiceR)</code></pre>
-<pre><code>## See ?WDQS for resources on Wikidata Query Service and SPARQL</code></pre>
-<pre><code>## 
-## Attachement du package : &#39;WikidataQueryServiceR&#39;</code></pre>
-<pre><code>## Les objets suivants sont masqués depuis &#39;package:WikidataR&#39;:
-## 
-##     get_example, query_wikidata</code></pre>
-<pre class="r"><code>library(dplyr)
+library(WikidataQueryServiceR)
+library(dplyr)
 # URL to this query on Wikidata query service
 countries_qid &lt;- query_wikidata(&#39;
-SELECT ?item ?itemLabel 
+SELECT ?item ?itemLabel
 WHERE
 {
 
      ?item wdt:P31 wd:Q6256 .
            
               SERVICE wikibase:label { bd:serviceParam wikibase:language &quot;en&quot;. }
-}&#39;)</code></pre>
-<pre><code>## Rows: 194 Columns: 2</code></pre>
-<pre><code>## ── Column specification ────────────────────────────────────────────────────────
-## Delimiter: &quot;,&quot;
-## chr (2): item, itemLabel
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>qid_no_url &lt;- gsub(&#39;[http://www.wikidata.org/entity/]&#39;, &#39;&#39;, countries_qid$item) # extrait le qid de la colonne item et ajoute une colonne au tableau des pays
+}&#39;)
+qid_no_url &lt;- gsub(&#39;[http://www.wikidata.org/entity/]&#39;, &#39;&#39;, countries_qid$item) # extrait le qid de la colonne item et ajoute une colonne au tableau des pays
 countries_qid &lt;- as.data.frame(countries_qid) # fait de countries_qid2 un dataframe afin que mutate puisse fonctionner (ligne suivante)
 countries_qid &lt;- countries_qid %&gt;% 
   mutate(
@@ -854,6 +973,12 @@ head(countries_qid, 10)</code></pre>
 ## 8  http://www.wikidata.org/entity/Q31       Belgium Q31              Belgium
 ## 9  http://www.wikidata.org/entity/Q32    Luxembourg Q32           Luxembourg
 ## 10 http://www.wikidata.org/entity/Q33       Finland Q33              Finland</code></pre>
+<p>Le code suivant fait la jointure entre les deux tableaux sur la base
+de leur colonne commune “country_of_discovery”. Dorénavant, dans le
+document maître (désormais appelé df1), lorsque la découverte a eu lieu
+au Canada, la valeur Q16 désignant le Canada et provenant du tableau
+issu de Wikidata sera affectée à l’item correspondant (l’espèce
+découverte au Canada).</p>
 <pre class="r"><code>df1 &lt;- merge(df, countries_qid, by = &quot;country_of_discovery&quot;)
 df1 &lt;- select(df1, species_name, qid, country_of_discovery, doi, plazi)
 head(df1, 10)</code></pre>
@@ -879,7 +1004,21 @@ head(df1, 10)</code></pre>
 ## 8         10.11646/zootaxa.5443.4.3 03B587E3-FFDF-EE06-00F9-4B27FD01FE9F
 ## 9  10.3853/j.2201-4349.75.2023.1876 03B8E56D-1702-7E68-0F60-B4835ED23916
 ## 10        10.11646/zootaxa.5432.3.1 933987E1-FFFC-FFFC-80A3-989AFC25A2E4</code></pre>
-<pre class="r"><code>get_qid &lt;- function(name) {
+</div>
+</div>
+<div id="créer-ou-enrichir" class="section level1">
+<h1>3.3 Créer ou enrichir</h1>
+<p>L’envoi groupé d’informations vers Wikidata n’est pas géré de la même
+manière par le package WikidataR selon qu’il s’agisse de créations (les
+éléments ne sont pas déjà présents dans Wikidata) ou bien
+d’enrichissements (les éléments sont présents, on les enrichit par de
+nouveaux <em>statements</em>) Il va falloir intégrer cette donnée dans
+notre tableau principal (df1). Pour cela, pour chaque nom d’espèce que
+contient le tableau, on va interroger Wikidata pour savoir s’il y a un
+élément correspondant avec la fonction <em>find_item</em> du package
+WikidataR, comme indiqué dans le script suivant :</p>
+<pre class="r"><code>options(width = 900)
+get_qid &lt;- function(name) {
   results &lt;- find_item(name)  # Search for the name in Wikidata
   if (length(results) &gt; 0) {
     return(results[[1]]$id)  # Extract QID of the first result
@@ -889,64 +1028,31 @@ head(df1, 10)</code></pre>
 }
 df1$QID_items &lt;- sapply(df1$species_name, get_qid)
 head(df1, 10)</code></pre>
-<pre><code>##                   species_name  qid country_of_discovery
-## 1              Panaspis ericae Q916               Angola
-## 2        Minibiotus dispositus Q414            Argentina
-## 3                 Ctenomys uco Q414            Argentina
-## 4  Xanthomelon amurndamilumila Q408            Australia
-## 5          Diplodactylus fyfei Q408            Australia
-## 6          Liopholis purnululu Q408            Australia
-## 7              Litoria sibilus Q408            Australia
-## 8       Naisdoris labalsaensis Q408            Australia
-## 9          Samadinia jimlowryi Q408            Australia
-## 10     Heteroclinus longicauda Q408            Australia
-##                                 doi                                plazi
-## 1         10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF
-## 2         10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE
-## 3             10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443
-## 4            10.3897/zse.100.113243 37DE5E77-7A67-4069-98C2-9FEA941205C8
-## 5             10.3897/vz.74.e128775 4E3F9A59-B628-507B-AA55-8B74BC462D31
-## 6         10.11646/zootaxa.5551.2.4 EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB
-## 7         10.11646/zootaxa.5406.1.1 03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA
-## 8         10.11646/zootaxa.5443.4.3 03B587E3-FFDF-EE06-00F9-4B27FD01FE9F
-## 9  10.3853/j.2201-4349.75.2023.1876 03B8E56D-1702-7E68-0F60-B4835ED23916
-## 10        10.11646/zootaxa.5432.3.1 933987E1-FFFC-FFFC-80A3-989AFC25A2E4
-##     QID_items
-## 1  Q127815097
-## 2  Q132163685
-## 3  Q124988842
-## 4  Q125696676
-## 5  Q130644039
-## 6  Q132079142
-## 7  Q125024287
-## 8  Q132166165
-## 9  Q132166166
-## 10 Q132166170</code></pre>
+<pre><code>##                   species_name  qid country_of_discovery                              doi                                plazi  QID_items
+## 1              Panaspis ericae Q916               Angola        10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF Q127815097
+## 2        Minibiotus dispositus Q414            Argentina        10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE Q132163685
+## 3                 Ctenomys uco Q414            Argentina            10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443 Q124988842
+## 4  Xanthomelon amurndamilumila Q408            Australia           10.3897/zse.100.113243 37DE5E77-7A67-4069-98C2-9FEA941205C8 Q125696676
+## 5          Diplodactylus fyfei Q408            Australia            10.3897/vz.74.e128775 4E3F9A59-B628-507B-AA55-8B74BC462D31 Q130644039
+## 6          Liopholis purnululu Q408            Australia        10.11646/zootaxa.5551.2.4 EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB Q132079142
+## 7              Litoria sibilus Q408            Australia        10.11646/zootaxa.5406.1.1 03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA Q125024287
+## 8       Naisdoris labalsaensis Q408            Australia        10.11646/zootaxa.5443.4.3 03B587E3-FFDF-EE06-00F9-4B27FD01FE9F Q132166165
+## 9          Samadinia jimlowryi Q408            Australia 10.3853/j.2201-4349.75.2023.1876 03B8E56D-1702-7E68-0F60-B4835ED23916 Q132166166
+## 10     Heteroclinus longicauda Q408            Australia        10.11646/zootaxa.5432.3.1 933987E1-FFFC-FFFC-80A3-989AFC25A2E4 Q132166170</code></pre>
 <pre class="r"><code>#df2 : items à créer dans Wikdata
 df2  &lt;- df1[is.na(df1$QID_items),] # filter(df1 ==&quot;NA&quot;) won&#39;t do it (see here https://stackoverflow.com/questions/7980622/subset-of-rows-containing-na-missing-values-in-a-chosen-column-of-a-data-frame#7980765)
 head(df2, 10)</code></pre>
-<pre><code>##                species_name    qid country_of_discovery
-## 24  Xangoniscus chaimowiczi   Q155               Brazil
-## 30        Charidotis rochai   Q155               Brazil
-## 31         Neoconger hygomi   Q155               Brazil
-## 32     Cerithiopsis pisinna   Q155               Brazil
-## 33     Anapolisia amazonica   Q155               Brazil
-## 36       Mesopolobus askewi   Q219             Bulgaria
-## 39     Digentia viridissima  Q1009             Cameroon
-## 41   Perilampus neodiprioni    Q16               Canada
-## 43  Pristerophora rothmanni   Q298                Chile
-## 44 Sinaxonopsis hainanensis Q29520                China
-##                           doi                                plazi QID_items
-## 24 10.3897/subtbiol.50.139914 B38058FA-49CF-576C-B81C-44DA7969887F      &lt;NA&gt;
-## 30  10.11646/zootaxa.5477.5.6 230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E      &lt;NA&gt;
-## 31  10.11646/zootaxa.5492.1.6 246A879B-FFDB-FFCC-FF42-FB8B7C1046EA      &lt;NA&gt;
-## 32  10.11646/zootaxa.5494.1.1 EF009476-3B45-4D35-9B1B-7D4E3E516811      &lt;NA&gt;
-## 33  10.11646/zootaxa.5564.1.1 03905517-C727-F528-39A9-FE31FAD4F809      &lt;NA&gt;
-## 36     10.3897/BDJ.12.e139403 B4F99402-5129-5CF8-810C-2CC35FF57A2F      &lt;NA&gt;
-## 39      10.3897/jor.34.126949 51342DEF-CAC8-5780-8B4F-2CDA429EE929      &lt;NA&gt;
-## 41      10.3897/jhr.97.133255 51043FC0-89D1-519D-B170-B91312C22CFA      &lt;NA&gt;
-## 43  10.11646/zootaxa.5433.4.8 03DDC049-FF8C-FF84-FF1B-FA81FEB8795A      &lt;NA&gt;
-## 44          10.24349/orqe-mqh 03E28502-3822-395E-FE59-FA10FCBAFE16      &lt;NA&gt;</code></pre>
+<pre><code>##                species_name    qid country_of_discovery                        doi                                plazi QID_items
+## 24  Xangoniscus chaimowiczi   Q155               Brazil 10.3897/subtbiol.50.139914 B38058FA-49CF-576C-B81C-44DA7969887F      &lt;NA&gt;
+## 30        Charidotis rochai   Q155               Brazil  10.11646/zootaxa.5477.5.6 230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E      &lt;NA&gt;
+## 31         Neoconger hygomi   Q155               Brazil  10.11646/zootaxa.5492.1.6 246A879B-FFDB-FFCC-FF42-FB8B7C1046EA      &lt;NA&gt;
+## 32     Cerithiopsis pisinna   Q155               Brazil  10.11646/zootaxa.5494.1.1 EF009476-3B45-4D35-9B1B-7D4E3E516811      &lt;NA&gt;
+## 33     Anapolisia amazonica   Q155               Brazil  10.11646/zootaxa.5564.1.1 03905517-C727-F528-39A9-FE31FAD4F809      &lt;NA&gt;
+## 36       Mesopolobus askewi   Q219             Bulgaria     10.3897/BDJ.12.e139403 B4F99402-5129-5CF8-810C-2CC35FF57A2F      &lt;NA&gt;
+## 39     Digentia viridissima  Q1009             Cameroon      10.3897/jor.34.126949 51342DEF-CAC8-5780-8B4F-2CDA429EE929      &lt;NA&gt;
+## 41   Perilampus neodiprioni    Q16               Canada      10.3897/jhr.97.133255 51043FC0-89D1-519D-B170-B91312C22CFA      &lt;NA&gt;
+## 43  Pristerophora rothmanni   Q298                Chile  10.11646/zootaxa.5433.4.8 03DDC049-FF8C-FF84-FF1B-FA81FEB8795A      &lt;NA&gt;
+## 44 Sinaxonopsis hainanensis Q29520                China          10.24349/orqe-mqh 03E28502-3822-395E-FE59-FA10FCBAFE16      &lt;NA&gt;</code></pre>
 </div>
 <div id="création-dun-tableau-à-partir-des-données-relatives-aux-éléments-à-créer" class="section level1">
 <h1>création d’un tableau à partir des données relatives aux éléments à
@@ -954,23 +1060,19 @@ créer</h1>
 <pre class="r"><code>df2_sub &lt;- slice_head(df2, n = 3, by = NULL)
 df2_sub &lt;- df2_sub %&gt;% 
   mutate(
-    row_num = row_number(),
-    item = paste0(&quot;CREATE_&quot;,row_num),
-    Len = paste0(df2_sub$species_name),
+    row_num = row_number(), # crée une colonne comportant le numéro de chaque item
+    item = paste0(&quot;CREATE_&quot;,row_num), # crée une colonne item comportant le suffixe CREATE_ suivi du numéro de la colonne
+    Len = paste0(df2_sub$species_name), # Crée la colonne Len (pour Langue anglaise) qui va servir à faire le label de l&#39;élément Wikidata
     P189 = paste0(df2_sub$qid),
     P356 = paste0(df2_sub$doi),
     P1992 = paste0(df2_sub$plazi)
   )
-df2_sub &lt;- select(df2_sub, item, species_name, Len, P189, P356, P1992)
+df2_sub &lt;- select(df2_sub, item, species_name, Len, P189, P356, P1992) # sélectionne les colonnes à conserver
 print(df2_sub)</code></pre>
-<pre><code>##       item            species_name                     Len P189
-## 1 CREATE_1 Xangoniscus chaimowiczi Xangoniscus chaimowiczi Q155
-## 2 CREATE_2       Charidotis rochai       Charidotis rochai Q155
-## 3 CREATE_3        Neoconger hygomi        Neoconger hygomi Q155
-##                         P356                                P1992
-## 1 10.3897/subtbiol.50.139914 B38058FA-49CF-576C-B81C-44DA7969887F
-## 2  10.11646/zootaxa.5477.5.6 230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E
-## 3  10.11646/zootaxa.5492.1.6 246A879B-FFDB-FFCC-FF42-FB8B7C1046EA</code></pre>
+<pre><code>##       item            species_name                     Len P189                       P356                                P1992
+## 1 CREATE_1 Xangoniscus chaimowiczi Xangoniscus chaimowiczi Q155 10.3897/subtbiol.50.139914 B38058FA-49CF-576C-B81C-44DA7969887F
+## 2 CREATE_2       Charidotis rochai       Charidotis rochai Q155  10.11646/zootaxa.5477.5.6 230EB076-FFB5-FFA0-B1F7-A9B1B124FD6E
+## 3 CREATE_3        Neoconger hygomi        Neoconger hygomi Q155  10.11646/zootaxa.5492.1.6 246A879B-FFDB-FFCC-FF42-FB8B7C1046EA</code></pre>
 <pre class="r"><code>library(tidyr)
 library(stringr)
 
@@ -1019,39 +1121,17 @@ write_wikidata(
 <pre class="r"><code>#df3 : items déjà créésdans Wikdata
 df3  &lt;- df1[!is.na(df1$QID_items),] # filter(df1 ==&quot;NA&quot;) won&#39;t do it (see here https://stackoverflow.com/questions/7980622/subset-of-rows-containing-na-missing-values-in-a-chosen-column-of-a-data-frame#7980765)
 head(df3, 10)</code></pre>
-<pre><code>##                   species_name  qid country_of_discovery
-## 1              Panaspis ericae Q916               Angola
-## 2        Minibiotus dispositus Q414            Argentina
-## 3                 Ctenomys uco Q414            Argentina
-## 4  Xanthomelon amurndamilumila Q408            Australia
-## 5          Diplodactylus fyfei Q408            Australia
-## 6          Liopholis purnululu Q408            Australia
-## 7              Litoria sibilus Q408            Australia
-## 8       Naisdoris labalsaensis Q408            Australia
-## 9          Samadinia jimlowryi Q408            Australia
-## 10     Heteroclinus longicauda Q408            Australia
-##                                 doi                                plazi
-## 1         10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF
-## 2         10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE
-## 3             10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443
-## 4            10.3897/zse.100.113243 37DE5E77-7A67-4069-98C2-9FEA941205C8
-## 5             10.3897/vz.74.e128775 4E3F9A59-B628-507B-AA55-8B74BC462D31
-## 6         10.11646/zootaxa.5551.2.4 EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB
-## 7         10.11646/zootaxa.5406.1.1 03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA
-## 8         10.11646/zootaxa.5443.4.3 03B587E3-FFDF-EE06-00F9-4B27FD01FE9F
-## 9  10.3853/j.2201-4349.75.2023.1876 03B8E56D-1702-7E68-0F60-B4835ED23916
-## 10        10.11646/zootaxa.5432.3.1 933987E1-FFFC-FFFC-80A3-989AFC25A2E4
-##     QID_items
-## 1  Q127815097
-## 2  Q132163685
-## 3  Q124988842
-## 4  Q125696676
-## 5  Q130644039
-## 6  Q132079142
-## 7  Q125024287
-## 8  Q132166165
-## 9  Q132166166
-## 10 Q132166170</code></pre>
+<pre><code>##                   species_name  qid country_of_discovery                              doi                                plazi  QID_items
+## 1              Panaspis ericae Q916               Angola        10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF Q127815097
+## 2        Minibiotus dispositus Q414            Argentina        10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE Q132163685
+## 3                 Ctenomys uco Q414            Argentina            10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443 Q124988842
+## 4  Xanthomelon amurndamilumila Q408            Australia           10.3897/zse.100.113243 37DE5E77-7A67-4069-98C2-9FEA941205C8 Q125696676
+## 5          Diplodactylus fyfei Q408            Australia            10.3897/vz.74.e128775 4E3F9A59-B628-507B-AA55-8B74BC462D31 Q130644039
+## 6          Liopholis purnululu Q408            Australia        10.11646/zootaxa.5551.2.4 EC6387B4-8F15-412E-FF0E-9B5E73F1D2BB Q132079142
+## 7              Litoria sibilus Q408            Australia        10.11646/zootaxa.5406.1.1 03D587FF-FFF5-FFAB-FF5F-58F3FDA1FEEA Q125024287
+## 8       Naisdoris labalsaensis Q408            Australia        10.11646/zootaxa.5443.4.3 03B587E3-FFDF-EE06-00F9-4B27FD01FE9F Q132166165
+## 9          Samadinia jimlowryi Q408            Australia 10.3853/j.2201-4349.75.2023.1876 03B8E56D-1702-7E68-0F60-B4835ED23916 Q132166166
+## 10     Heteroclinus longicauda Q408            Australia        10.11646/zootaxa.5432.3.1 933987E1-FFFC-FFFC-80A3-989AFC25A2E4 Q132166170</code></pre>
 <pre class="r"><code>df3_sub &lt;- slice_head(df3, n = 3, by = NULL)
 df3_sub &lt;- df3_sub %&gt;% 
   mutate(
@@ -1063,14 +1143,10 @@ df3_sub &lt;- df3_sub %&gt;%
   )
 df3_sub &lt;- select(df3_sub, QID_items, species_name, Len, P189, P356, P1992)
 print(df3_sub)</code></pre>
-<pre><code>##    QID_items          species_name                   Len P189
-## 1 Q127815097       Panaspis ericae       Panaspis ericae Q916
-## 2 Q132163685 Minibiotus dispositus Minibiotus dispositus Q414
-## 3 Q124988842          Ctenomys uco          Ctenomys uco Q414
-##                        P356                                P1992
-## 1 10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF
-## 2 10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE
-## 3     10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443</code></pre>
+<pre><code>##    QID_items          species_name                   Len P189                      P356                                P1992
+## 1 Q127815097       Panaspis ericae       Panaspis ericae Q916 10.3897/evolsyst.8.121103 DF1D1955-945C-44BF-B4FB-5E33548C9EEF
+## 2 Q132163685 Minibiotus dispositus Minibiotus dispositus Q414 10.5852/ejt.2024.958.2663 780E50E1-48E8-474C-8935-070FCD6B09AE
+## 3 Q124988842          Ctenomys uco          Ctenomys uco Q414     10.3897/vz.74.e115242 797C39B9-EADE-4A18-8BD4-4875AD374443</code></pre>
 <pre class="r"><code>import2 &lt;- df3_sub %&gt;% 
   select(QID_items, 
          matches(&quot;^L&quot;, ignore.case = FALSE), 

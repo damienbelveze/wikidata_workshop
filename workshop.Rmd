@@ -162,10 +162,12 @@ pattern <- "(?<=from #)(\\w+)" # capture le mot qui vient après l'expression r�
 df <- df %>%
   mutate(
     country_of_discovery = str_extract(content, pattern),
-    country_of_discovery = str_to_title(country_of_discovery) 
+    country_of_discovery = str_to_title(country_of_discovery) #str_to_title permet de restaurer la majuscule à l'iniotiale des noms de pays.
   )
 head(df[, 30:31], 10)
 ```
+Avec la fonction de *stringr* "str_to_title" on a au passage restauré la majuscule à l'initiale du nom de pays qui avait disparu dans le message posté sur Mastodon. 
+
 
 On va procéder de manière similaire pour extraire de la colonne "content" les DOI et les identifiants de la base Plazi. 
 pour former l'expression régulière concernant les DOIs, on va s'aider du suffixe doi.org/
@@ -197,22 +199,90 @@ df <- select(df, species_name, taxon, country_of_discovery, doi, plazi)
 head(df,10)
 ```
 
-# Propriétés : 
+# 3. Préparer les données en vue de leur envoi vers Wikidata
 
-location of discovery : [P189](https://www.wikidata.org/wiki/Property:P189)
-described by source : [P1343](https://www.wikidata.org/wiki/Property:P1343)
+## 3.1 Qu'est-ce qu'un statement (architecture de la wikibase de Wikidata)
+
+Wikidata est la plus grande instance existante du logiciel Wikibase. Wikibase agence les éléments selon des propriétés. On parle de triplet. 
+Un *statement* est l'action consistant à ajouter une propriété et un élément relatif à un élément existant. 
+
+Par exemple, l'araignée *Sinodromus fujianensis* a été découverte en Chine est un *statement* qui associe à l'élément [Q131545573 "Sinodromus fujianensis"](https://www.wikidata.org/wiki/Q131545573) la propriété [P189 "Pays de découverte"](https://www.wikidata.org/wiki/Property:P189) qui correspond à l'élément [Q148 "République Populaire de Chine](https://www.wikidata.org/wiki/Q148). 
+Cette relation illustre bien le modèle employé par la base de données : 
+
+Q(élément) > P(propriété) > Q(élément)
+
+Si l'on rapport ce modèle aux informations que l'on a déjà extraites des toots de Plazi, nous avons donc le schéma suivant : 
+
+| élément Q | Propriété P | élément Q ou chaîne de caractères |
+|:--:|:--:|:--:|
+| une espèce donnée | Len (le nom en langue anglaise) | le nom de l'espèce (une chaîne de caractères) |
+| la même espèce | P189 (a été découvert dans un pays) | le nom du pays (un élément Q) |
+| la même espèce | P225 (a pour nom de taxon) | le nom de l'espèce (une chaîne de caractères) |
+| la même espèce | P356 (a pour DOI) | le DOI de l'article dans lequel la découverte a été consignée |
+| la même espèce | P1992 (a pour identifiant dans la base Plazi) | l'identifiant de la base Plazi |
+
+Ajouter un *statement*, c'est ajouter une propriété et une valeur reliée à cette propriété à un élément. 
 
 
+## 3.2 assigner des éléments pays à la liste de pays obtenus via Mastodon
 
+Si l'on veut ajouter à Wikidata le statement "l'araignée Sinodromus Fujinianensis a été découverte en Chine", il faut prendre en garde a bien relier le bon élément (araignée Sinodromus) à la bonne entité "République Populaire de Chine". 
+Si l'on envoie cette information via une chaîne de caractères (en conservant le terme "China" présent dans le message posté sur Plazi), on pourrait potentiellement relier cette araignée à plusieurs éléments : 
 
+1 People's Republic of China (Q148)
+2 mainland China (Q19188)
+3 porcelain (Q130693) : china 
+4 China (Q942154) 
 
-```{r get the list of all countries in english with their qid}
+Le 1 est ce qui convient le mieux (entité territoriale
+le 2 est un concept politique (la Chine moins Taïwan, ce qui suppose que la Chine soit la Chine "réunifiée" avec Taïwan)
+le 3 est un objet en porcelaine (qu'en anglais on nomme effectivement : china)
+le 4 est une localité mexicaine de la province du Nuevo Léon. 
+
+Il y a un risque non négligeable qu'un processus automatisé d'information en direction de Wikipédia traite une chaîne de caractère comme China de telle sorte qu'un élément comme celui de cette municipalité mexicaine lui soit associé, en lieu et place de celui qui était visé. 
+Pour éviter cela, nous allons croiser les noms de pays obtenus avec la liste des entités de pays que nous pourrons obtenir de Wikidata. 
+
+Pour obtenir cette liste, il est nécessaire d'envoyer une requête via WikidataR. 
+
+Ce package comporte une fonction de requêtage qui procède de la manière suivante : 
+
+```txt
+
+liste_elements <- query_wikidata(' 
+
+placer ici une requête en SPARQL
+
+')
+
+```
+
+Le SPARQL est le langage de requête utilisé pour interroger des bases comme Wikipedia
+Nous ne pouvons pas ici nous y attarder, nous nous contenterons de commenter les étapes de cette requête : 
+
+```txt
+SELECT ?item ?itemLabel           # sélectionne les items qui réalisent la condition ci-dessous et affiche leur item (QID) et leur label (=nom du pays)
+WHERE
+{
+
+     ?item wdt:P31 wd:Q6256 .     # les éléments sont (P31) des pays (Q6256)
+           
+              SERVICE wikibase:label { bd:serviceParam wikibase:language "en". # saisit les labels anglophones des éléments en question 
+
+```
+
+Les résultats ne sont pas les identifiants eux-mêmes mais des URL (http://www.wikidata.org/entity/Q16 pour le Canada par exemple) qui comportent ces identifiants (Q16). 
+Nous rajoutons donc un bout de code qui permet de séparer le nom de domaine de ces URL des identifiants dont nous avons besoin et obtient de cette manière une nouvelle colonne "qid" qui recense les identifiants de cette liste de pays.
+
+Pour lier ce tableau des pays au précédent tableau, il faut disposer d'une colonne pivot qui doit porter le même nom dans les deux cas. 
+Ainsi dans le dataframe "countries_id", on peut soit renommer la colonne ItenLabel en "country_of_discovery" qui est déjà présente dans l'autre tableau (df), soit copier-coller le contenu de la colonne "itemLabel" héritée de l'interrogation en Sparql dans une nouvelle colonne qu'on va nommer "country_of_discovery". Nous avons choisi la deuxième voie. 
+
+```{r récupérer la liste des identifiants de tous les pays recensés dans Wikidata, echo=TRUE, message=FALSE, warning=FALSE}
 library(WikidataR)
 library(WikidataQueryServiceR)
 library(dplyr)
 # URL to this query on Wikidata query service
 countries_qid <- query_wikidata('
-SELECT ?item ?itemLabel 
+SELECT ?item ?itemLabel
 WHERE
 {
 
@@ -231,15 +301,24 @@ countries_qid <- countries_qid %>%
 head(countries_qid, 10)
 ```
 
+Le code suivant fait la jointure entre les deux tableaux sur la base de leur colonne commune "country_of_discovery". Dorénavant, dans le document maître (désormais appelé df1), lorsque la découverte a eu lieu au Canada, la valeur Q16 désignant le Canada et provenant du tableau issu de Wikidata sera affectée à l'item correspondant (l'espèce découverte au Canada).
+
 ```{r jonction des deux tableaux }
 
 df1 <- merge(df, countries_qid, by = "country_of_discovery")
-df1 <- select(df1, species_name, qid, country_of_discovery, doi, plazi)
+df1 <- select(df1, species_name, taxon, qid, country_of_discovery, doi, plazi)
 head(df1, 10)
 
 ```
 
-```{r récupération des items qui existent déjà dans Wikidata}
+
+# 3.3 Créer ou enrichir
+
+L'envoi groupé d'informations vers Wikidata n'est pas géré de la même manière par le package WikidataR selon qu'il s'agisse de créations (les éléments ne sont pas déjà présents dans Wikidata) ou bien d'enrichissements (les éléments sont présents, on les enrichit par de nouveaux *statements*)
+Il va falloir intégrer cette donnée dans notre tableau principal (df1). Pour cela, pour chaque nom d'espèce que contient le tableau, on va interroger Wikidata pour savoir s'il y a un élément correspondant avec la fonction *find_item* du package WikidataR, comme indiqué dans le script suivant : 
+
+
+```{r récupération des items qui existent déjà dans Wikidata, echo=TRUE, fig.width=12}
 
 get_qid <- function(name) {
   results <- find_item(name)  # Search for the name in Wikidata
@@ -253,10 +332,42 @@ df1$QID_items <- sapply(df1$species_name, get_qid)
 head(df1, 10)
 
 
+```
+
+```{r}
+library(WikidataR)
+
+q_list <- c(df3$QID_items) 
+
+qid_list <- c(paste0("wd:",q_list, collapse = " "))
+
+
+query_sparql <- paste0("SELECT ?item ?locationOfDiscovery 
+WHERE {  
+    VALUES ?item {", qid_list,"}
+      OPTIONAL { ?item wdt:P189 ?locationOfDiscovery. }
+SERVICE wikibase:label { bd:serviceParam wikibase:language 'en'. }
+}")
+print(query_sparql)
+
+results <- query_wikidata(query_sparql)
+print(results)
+
 
 ```
 
-```{r récupération des items qui ne sont pas présents dans Wikidata}
+```{r vérifier que les items disposant d'un QID n'ont pas encore la propriété Pays de découverte}
+
+library(WikidataR)
+processed <- query_wikidata(query)
+print(processed)
+
+
+```
+
+Maintenant que cette nouvelle colonne QID_items est créée, avec les identifiants de Wikidata quand les éléments sont déjà créés, vide (NA lorsque ces éléments n'ont pas encore été créés), on va pouvoir scinder ce tableau en deux : dans le premier (df2), les items qui n'ont pas encore été créés sur Wikidata, dans le second (df3) les items qui ont déjà été créés. Créons déjà df2 :
+
+```{r récupération des items qui ne sont pas présents dans Wikidata, echo=TRUE, message=FALSE, warning=FALSE}
 #df2 : items à créer dans Wikdata
 df2  <- df1[is.na(df1$QID_items),] # filter(df1 =="NA") won't do it (see here https://stackoverflow.com/questions/7980622/subset-of-rows-containing-na-missing-values-in-a-chosen-column-of-a-data-frame#7980765)
 head(df2, 10)
@@ -266,21 +377,73 @@ head(df2, 10)
 
 
 
-# création d'un tableau à partir des données relatives aux éléments à créer
+## 3.4 Constitution d'un tableau d'éléments à créer
+
+Il est nécessaire à ce stade d'expliquer comment procéder l'envoi d'informations vers la wikibase au moyen du package WikidataR. 
+La fonction dont nous allons nous servir est [write_wikidata()](https://www.rdocumentation.org/packages/WikidataR/versions/2.3.3/topics/write_wikidata).
+La syntaxe de base est la suivante : 
+
+```txt
+
+write_wikidata(
+  items,                 # items = les identifiants Qids des éléments à modifier (cela suppose qu'ils ont déjà été créés)
+  properties = NULL,
+  values = NULL,
+  qual.properties = NULL,
+  qual.values = NULL,
+  src.properties = NULL,
+  src.values = NULL,
+  remove = FALSE,
+  format = "tibble",
+  api.username = NULL,
+  api.token = NULL,
+  api.format = "v1",
+  api.batchname = NULL,
+  api.submit = TRUE
+)
+
+```
+Supposons que nous disposiions d'un dataframe comportant dans une colonne item les identifiants des articles Wikidata de toutes les batailles qui ont eu lieu dans le Péloponnèse et dans le même dataframe une colonne value qui porte la date de chacune de ces batailles. 
+Dans ce cas, la 
+
+
+```txt
+
+item <- c(dataframe$item)  # liste des éléments relatifs aux batailles du Péloponnèse, par exemple  la bataille d'Aegos Potamos (Q866862) 
+property <- "P585"     # Date de l'événement
+value <- c(dataframe$date_iso)  # date en format ISO
+
+library(WikidataR)
+write_wikidata(items = item,
+               properties = "P585",
+               values = value,
+               format = "api",
+               api.username = "identifiant_utilisateur", 
+               api.token = "mettre ici votre token")
+
+```
+Dans ce cas, les items sont pluriels (de même que les dates bien sûr), mais la propriété est unique. 
+Lorsque nous voulons faire des enrichissements sur plusieurs propriétés, il est plus commode de faire des ces propriétés elles-mêmes un vecteur. C'est ce que nous faisons dans le *chunck* suivant. 
+
+La première ligne constitue un tableau extrait de df2. Ce tableau ne comporte que les trois premiers enregistrements de df2. En effet, pour plus de clarté, et dans l'optique de refaire cet exercice plusieurs fois, nous ne voulons pas traiter l'ensemble des items disponibles mais seulement une partie d'entre eux. C'est aussi un principe de précaution que nous appliquons. 
+Il s'agit de créer des items qui n'existent pas encore dans Wikidata ; n'importe quel utilisateurice peut ajouter ou supprimer des *statements* à un ou plusieurs éléments de Wikidata. Mais supprimer des éléments nécessite un compte d'administrateurice. Il n'y a pas de retour en arrière possible pour le commun des mortels en cas d'erreur (même si les conséquences des erreurs sont limitées).
+Donc autant être prudent et procéder avec un échantillon de trois items, pour vérifier que tout fonctionne et bien comprendre comment cela fonctionne.
+
 
 ```{r selection des trois items de tête de la liste df2}
 
 df2_sub <- slice_head(df2, n = 3, by = NULL)
 df2_sub <- df2_sub %>% 
   mutate(
-    row_num = row_number(),
-    item = paste0("CREATE_",row_num),
-    Len = paste0(df2_sub$species_name),
+    row_num = row_number(), # crée une colonne comportant le numéro de chaque item
+    item = paste0("CREATE_",row_num), # crée une colonne item comportant le suffixe CREATE_ suivi du numéro de la colonne
+    Len = paste0(df2_sub$species_name), # Crée la colonne Len (pour Langue anglaise) qui va servir à faire le label de l'élément Wikidata
+    P225 = paste0(df2_sub$taxon),
     P189 = paste0(df2_sub$qid),
     P356 = paste0(df2_sub$doi),
     P1992 = paste0(df2_sub$plazi)
   )
-df2_sub <- select(df2_sub, item, species_name, Len, P189, P356, P1992)
+df2_sub <- select(df2_sub, item, species_name, Len, P225, P189, P356, P1992) # sélectionne les colonnes à conserver
 print(df2_sub)
 
 ```
@@ -383,4 +546,8 @@ write_wikidata(
   )
 
 ```
+
+# Bibliographie
+
+
 
