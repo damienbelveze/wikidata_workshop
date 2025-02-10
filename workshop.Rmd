@@ -23,7 +23,7 @@ Depuis 2008, la fondation à but non lucratif Plazi Verein qui réunit des cherc
 Depuis quelques temps, Plazi tient un compte sur le Fédivers (Mastodon) et y publie des informations sur les dernières espèces.
 Ces informations comprennent entre autres informations le nom de l'espèce, le lieu de découverte, l'identifiant de l'espèce dans la base de données Plazi et la publication dans laquelle cette découverte est mentionnée.
 
-<img src="images/harlequin_frog.png" alt="un toot (message) de Mastodon annonçant la découverte d'une nouvelle grenouille Harlequin en Chine"/>
+<img src="images/harlequin_frog.png" alt="un toot (message) de Mastodon annonçant la découverte d&apos;une nouvelle grenouille Harlequin en Chine" width="500">
 
 Le Fédivers est un réseau structuré par un protocole de communication (ActivityPub) qui permet de faire communiquer plusieurs serveurs entre eux ; il s'agit d'une architecture décentralisée à laquelle les utilisateurs peuvent avoir accès au moyen de logiciels orientés vers le partage de vidéos (PeerTube), de photos (Pixelfeld) ou de messages (Diaspora et Mastodon).
 Ces logiciels se présentent comme des alternatives transparentes, libres, éthiques et décentralisées aux plateformes qui, selon Cédric Durand, constituent le fer de lance du techno-féodalisme (à savoir réspectivement Youtube qui appartient à Google, Instagram qui appartient à Meta, et Facebook, Twitter ou LinkdedIn respectivement les propriétés de Mark Zuckerberg, d'Elon Musk et de Ryan Roslansky).
@@ -52,12 +52,12 @@ Ce deuxième package conçu pour R est [WikidataR](<https://www.rdocumentation.o
 
 Pour les personnes qui ne sont pas familières de la façon dont sont structurées les informations sur Wikidata, voici un exemple :
 
-<img src="images/toot_snake.png" alt="annonce de la découverte d'une nouvelle espèce de serpent au Honduras"/>
+<img src="images/toot_snake.png" alt="annonce de la découverte d&apos;une nouvelle espèce de serpent au Honduras" width="500">
 
 Cette nouvelle espèce de serpent dont la découverte a été annoncée sur Plazi en janvier 2024 a suscité un an plus tard la création d'un élément dans Wikidata [par un.e internaute](https://www.wikidata.org/w/index.php?title=Q131986719&action=history).
 Voilà comment se présente cet élément :
 
-<img src="images/snake.png" alt="page de l&apos;élement dans Wikidata avec les informations suivantes : identifiant (QID), nom, taxon, rang du taxon et taxon parent"/>
+<img src="images/snake.png" alt="page de l&apos;élement dans Wikidata avec les informations suivantes : identifiant (QID), nom, taxon, rang du taxon et taxon parent" width="1000">
 
 Le taxon et le taxon parent sont des *statements*.
 Il est possible à n'importe qui de rajouter des enrichissements en cliquant en bas sur le bouton "add statement".
@@ -79,10 +79,9 @@ La méthode que nous allons suivre est par conséquent la suivante :
 
 # 2. Récupération des toots de Plazi
 
-<div class = "blue">
-**Compétences**
-- Utiliser Rtoot pour récupérer des messages de Mastodon
-</div>
+> **Compétences**
+>
+> 👉 Utiliser Rtoot pour récupérer des messages de Mastodon
 
 Nous pouvons commencer par installer les deux *packages* que nous avons mentionnés dans R.
 Cela peut se faire à partir de l'[archive CRAN](https://cran.r-project.org/) :
@@ -140,11 +139,13 @@ On discerne quand même le nom de l'espèce séparé du reste du texte par deux 
 Utiliser ces balises est nécessaire pour extraire cette information.
 Les autres informations pourront être extraites une fois que le texte des messages aura été "nettoyé", débarrassé des éléments de la syntaxe html.
 
-<div class = "blue">
-**Compétences** <br>
-- Utiliser des expressions régulières pour extraire d'un texte des chaînes de caractère <br>
-- supprimer des lignes qui ont une certaine valeur pour une variable donnée <br>
-</div>
+         
+>**Compétences**
+>
+>👉 Utiliser des expressions régulières pour extraire d'un texte des chaînes de caractère
+>
+>👉 Supprimer des lignes qui ont une certaine valeur pour une variable donnée  
+
 
 Pour extraire le nom de l'espèce qui se situe entre \</\p\>\<\p\> et \<\p\>\</\p\>, on va utiliser une première regex ("expression régulière") et l'extraction se fera au moyen du package *stringr*.
 Les caractères extraits du corps du texte, c'est-à-dire, le nom de l'espèce, vont remplir une nouvelle colonne qui est ajoutée au moyen du package *dplyr*.
@@ -191,17 +192,22 @@ head(df[, 30:30], 10)
 
 ```
 
-<div class = "blue">
-**Compétences**
-- Utiliser la fonction html_text du package Rvest pour supprimer des balises html d'un texte
-- Utiliser la fonction str_to_title de stringr pour restaurer la majuscule à l'initiale des noms de pays
-- utiliser des expressions régulières pour isoler du texte qui répond à une forme rigide (numéro de matricule)
-</div>
+
+
+>**Compétences**
+>
+>👉 Utiliser la fonction *html_text* du package *Rvest* pour supprimer des balises html d'un texte
+>
+>👉 Utiliser la fonction *str_to_title* de *stringr* pour restaurer la majuscule à l'initiale des noms de pays
+>
+>👉 Utiliser des expressions régulières pour isoler du texte qui répond à une forme rigide (numéro de matricule)
+
+
 
 Le reste du contenu des messages (colonne "content"), du moins les informations qui nous intéressent et dont nous allons nous servir pour enrichir Wikidata, peuvent être isolées et extraites sans l'aide de balises html (les regex pourront intégrer des éléments du texte).
 On se propose donc à l'étape suivante de *parser* tous ces messages pour en supprimer tous les éléments de formatage en html.
 Nous suivons en cela la méthode présentée par Stochastics (@stochasticsInteractingMastodonAPIa).
-Nous aurons besoin pour réaliser cette tâche de deux nouveaux packages : purrr et rvest.
+Nous aurons besoin pour réaliser cette tâche de deux nouveaux packages : *purrr* et *rvest*.
 
 ```{r suppression des balises html dans les messages, echo=TRUE, message=FALSE, warning=FALSE}
 library(purrr)
@@ -260,21 +266,26 @@ library(dplyr)
 df <- df %>%
   mutate(taxon = paste0(species_name))
 df <- select(df, species_name, taxon, country_of_discovery, doi, plazi)
-head(df,10)
+head(df,5)
 ```
 
 # 3. Préparer les données en vue de leur envoi vers Wikidata
 
 ## 3.1 Qu'est-ce qu'un statement (architecture de la wikibase de Wikidata)
 
-<div class = "blue">
-**Compétences**
-- comprendre comment sont agencés les items et les propriétés ainsi que leurs valeurs dans les éléments de Wikidata
-- Utiliser des identifiants de noms de pays, plutôt que des noms de pays pour enrichir Wikidata sans faire d'erreur
-- s'initier à la structuration des requêtes Sparql dans Wikidata
-- maîtriser l'usage de WikidataR pour l'envoi de requêtes en Sparql vers Wikidata
-- fusionner deux tables à partir d'une colonne pivot identique dans les deux
-</div>
+         
+>**Compétences** 
+
+>👉 Comprendre comment sont agencés les items et les propriétés ainsi que leurs valeurs dans les éléments de Wikidata  
+>
+>👉 Utiliser des identifiants de noms de pays, plutôt que des noms de pays pour enrichir Wikidata sans faire d'erreur   
+>
+>👉 S'initier à la structuration des requêtes Sparql dans Wikidata 
+>
+>👉 Maîtriser l'usage de WikidataR pour l'envoi de requêtes en Sparql vers Wikidata
+>
+>👉 Fusionner deux tables à partir d'une colonne pivot identique dans les deux
+
 
 Wikidata est la plus grande instance existante du logiciel Wikibase.
 Wikibase agence les éléments selon des propriétés.
@@ -299,14 +310,13 @@ Ajouter un *statement*, c'est ajouter une propriété et une valeur reliée à c
 
 ## 3.2 assigner des éléments pays à la liste de pays obtenus via Mastodon
 
-
 Si l'on veut ajouter à Wikidata le statement "l'araignée Sinodromus Fujinianensis a été découverte en Chine", il faut prendre en garde a bien relier le bon élément (araignée Sinodromus) à la bonne entité "République Populaire de Chine".
 Si l'on envoie cette information via une chaîne de caractères (en conservant le terme "China" présent dans le message posté sur Plazi), on pourrait potentiellement relier cette araignée à plusieurs éléments :
 
-- 1 People's Republic of China (Q148)  
-- 2 mainland China (Q19188)  
-- 3 porcelaine (en anglais "china") (Q130693)   
-- 4 China (Q942154)  
+-   1 People's Republic of China (Q148)\
+-   2 mainland China (Q19188)\
+-   3 porcelaine (en anglais "china") (Q130693)\
+-   4 China (Q942154)
 
 Le 1 est ce qui convient le mieux (entité territoriale le 2 est un concept politique (la Chine sans Taïwan, ce qui suppose que la Chine soit la Chine "réunifiée" avec Taïwan) le 3 est un objet en porcelaine (qu'en anglais on nomme effectivement : china) le 4 est une localité mexicaine de la province du Nuevo Léon.
 
@@ -383,12 +393,15 @@ head(df1, 10)
 
 # 3.3 Créer ou enrichir
 
-<div class = "blue">
-**Compétences**
-- avec la fonction find_item() de WikidataR, obtenir à partir d'un vecteur comportant des identifiants Wikidata la liste des éléments déjà présents dans la wikibase
-- comprendre la structure d'une commande pour éditer des éléments Wikidata (fonction write_wikidata())
-- rédiger une commande pour éditer en masse dans Wikidata
-</div>
+
+>**Compétences** 
+>
+>👉 Avec la fonction find_item() de WikidataR, obtenir à partir d'un vecteur comportant des identifiants Wikidata la liste des éléments déjà présents dans la wikibase  
+>  
+>👉 comprendre la structure d'une commande pour éditer des éléments Wikidata (fonction write_wikidata()) 
+>  
+>👉 rédiger une commande pour éditer en masse dans Wikidata  
+
 
 L'envoi groupé d'informations vers Wikidata n'est pas géré de la même manière par le package WikidataR selon qu'il s'agisse de créations (les éléments ne sont pas déjà présents dans Wikidata) ou bien d'enrichissements (les éléments sont présents, on les enrichit par de nouveaux *statements*) Il va falloir intégrer cette donnée dans notre tableau principal (df1).
 Pour cela, pour chaque nom d'espèce que contient le tableau, on va interroger Wikidata pour savoir s'il y a un élément correspondant avec la fonction *find_item* du package WikidataR, comme indiqué dans le script suivant :
@@ -477,11 +490,13 @@ Mais supprimer des éléments nécessite un compte d'administrateurice.
 Il n'y a pas de retour en arrière possible pour le commun des mortels en cas d'erreur (même si les conséquences des erreurs sont limitées).
 Donc autant être prudent et procéder avec un échantillon de trois items, pour vérifier que tout fonctionne et bien comprendre comment cela fonctionne.
 
-div class = "blue">
-**Compétences**
-- faire pivoter un tableau avec la fonction pivot_longer() du package Tidyr
-- récupérer le jeton depuis la forge quickstatement pour lancer la commande write_wikidata
-</div>
+
+>**Compétences** 
+>
+>👉 Faire pivoter un tableau avec la fonction *pivot_longer()* du package *Tidyr*   
+>
+>👉 récupérer le jeton depuis la forge *quickstatement* pour lancer la commande *write_wikidata* du package *WikidataR*
+
 
 
 Les étapes qui suivent procèdent à la mise en forme de cette information pour qu'elle soit exploitable par la forge de Wikidata, c'est à dire pour qu'elles soient véritablement envoyées vers la base de Wikidata.
@@ -567,7 +582,8 @@ import <- df2_sub %>%
 head(import, 10)
 ```
 
-# 3.5 Utiliser un token de Wikidata pour exporter des éléments vers la Wikibase
+
+## 3.5 Utiliser un token de Wikidata pour exporter des éléments vers la Wikibase
 
 Toute modification de la Wikibase de Wikidata peut être faite à la main, et comme pour Wikipédia, il suffit pour cela d'avoir un ordinateur connecté à Internet, pas besoin de compte.
 Toutefois, et c'est bien compréhensible, les modifications de masse sur Wikidata doivent être traçables.
@@ -577,7 +593,7 @@ Ce compte vous permettra d'obtenir votre *token* pour faire l'export vers la Wik
 Aller sur le [site de Wikidata intitulé "QuickStatements"](https://quickstatements.toolforge.org/#/user) Se connecter avec son compte Une fois identifié, cliquer sur le nom du compte.
 Un texte apparaît avec au milieu un encadré gris (flouté sur cette image) qui comporte votre *token* personnel (ne le laissez pas traîner dans votre code)
 
-![](images/token.png)
+<img src="images/token.png" alt="token disponible pour un utilisateur connecté sur le site quickstatement" width="1000">
 
 On peut désormais copier ce token et le coller dans le *chunk* ci-dessous :
 
@@ -600,15 +616,17 @@ Lorsque ce script est exécuté, vous pouvez suivre la progression de l'envoi su
 
 Voici un rapport concernant trois espèces qui ont été créées sur Wikidata en suivant ce procédé :
 
-![](images/statement.png)
+<img src="images/statement.png" alt="console indiquant que les nouveaux éléments ont bien été créés sur Wikidata avec leurs enrichissements respectifs" width="1000">
 
 ## traitement des éléments qui sont déjà présents dans Wikidata
 
-div class = "blue">
-**Compétences**
-- filtrer un tableau à partir de la valeur nulle dans une colonne donnée
-- insérer une liste dans une commande conçue pour la fonction write_wikidata()
-</div>
+
+>**Compétences** 
+>
+>👉 Filtrer un tableau à partir de la valeur nulle dans une colonne donnée
+>
+<👉 insérer une liste dans une commande conçue pour la fonction *write_wikidata()*
+
 
 df2 comportait des éléments qui n'étaient pas présents dans Wikidata, nous allons maintenant traiter les espèces qui ont déjà fait l'objet de créations dans la Wikibase de Wikidata.
 Ces items vont être regroupés dans un *dataframe* que nous allons appeler **df3**
@@ -732,8 +750,8 @@ write_wikidata(
 
 # Conclusion
 
-A travers cette étude, nous allons voulu montrer à la fois l'intérêt d'un package R pour récupérer du contenu publié sur Mastodon directement dans R afin d'en faciliter le traitement et en même temps l'utilité du package WikidataR conçu pour récupérer des lots d'information depuis Wikidata, les traiter en local, pour les enrichir avec ses propres données, et restituer le tout à sa communauté au moyen d'une édition de masse. 
+A travers cette étude, nous allons voulu montrer à la fois l'intérêt d'un package R pour récupérer du contenu publié sur Mastodon directement dans R afin d'en faciliter le traitement et en même temps l'utilité du package WikidataR conçu pour récupérer des lots d'information depuis Wikidata, les traiter en local, pour les enrichir avec ses propres données, et restituer le tout à sa communauté au moyen d'une édition de masse.
 
-Nous espérons ainsi contribuer à la fois à l'usage de Wikidata comme ontologie pivot dans la FAIRisation des données de recherche et à l'analyse des messages échangés sur le Fédivers qui constituent la seule réelle alternative décentralisée pour toutes celles et ceux, scientifiques ou amateurs et amantrices de sciences en particulier, qui ont du quitter les réseaux sociaux propriétaires devenus des foyers d'extrémisme et de propagation anti-science. 
+Nous espérons ainsi contribuer à la fois à l'usage de Wikidata comme ontologie pivot dans la FAIRisation des données de recherche et à l'analyse des messages échangés sur le Fédivers qui constituent la seule réelle alternative décentralisée pour toutes celles et ceux, scientifiques ou amateurs et amantrices de sciences en particulier, qui ont du quitter les réseaux sociaux propriétaires devenus des foyers d'extrémisme et de propagation anti-science.
 
 # Bibliographie
